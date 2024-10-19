@@ -1,27 +1,26 @@
 package stocks;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import util.StocksBuffer;
+
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 public class StockEntryIterator implements Iterator<StockEntry> {
 
     private long pos;
-    private final RandomAccessFile file;
+    private final StocksBuffer stocksBuffer;
 
-    public StockEntryIterator(RandomAccessFile file) {
-        // TODO
-        this.file = null;
+    public StockEntryIterator(StocksBuffer stocksBuffer) {
+        this.stocksBuffer = stocksBuffer;
     }
 
     public boolean hasNext() {
-        // TODO
-        return false;
+        return pos < stocksBuffer.getSize();
     }
 
     public StockEntry next() {
-        // TODO
-        return null;
+        byte[] byteArray = stocksBuffer.getRecordAt(pos);
+        pos += stocksBuffer.getSizeRecordAt(pos);
+        return new StockEntry(ByteBuffer.wrap(byteArray));
     }
 }
