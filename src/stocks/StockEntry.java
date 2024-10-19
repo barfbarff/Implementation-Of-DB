@@ -1,6 +1,7 @@
 package stocks;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class StockEntry {
     private final long id;
@@ -16,8 +17,18 @@ public class StockEntry {
     }
 
     public StockEntry(ByteBuffer bb) {
-        // TODO
-        this(0, "", 0, 0);
+        int id = (int) bb.getLong();
+
+        byte[] nameByteArray = new byte[bb.getShort()];
+        bb.get(nameByteArray);
+        String name = new String(nameByteArray, StandardCharsets.UTF_8);
+
+        int timestamp = (int) bb.getLong();
+
+        double marketValue = bb.getDouble();
+
+        this(id, name, timestamp, marketValue);
+
     }
 
     public long getId() {
@@ -46,8 +57,22 @@ public class StockEntry {
     }
 
     public ByteBuffer getBytes() {
-        // TODO
-        return null;
+        ByteBuffer byteBuffer = ByteBuffer.allocate(26 + name.length());
+
+        byteBuffer.putLong(id);
+
+        byteBuffer.putShort((short) name.length());
+
+        byte[] nameByteArray = name.getBytes(StandardCharsets.UTF_8);
+        byteBuffer.put(nameByteArray);
+
+        byteBuffer.putLong(ts);
+
+        byteBuffer.putDouble(value);
+
+        byteBuffer.flip();
+
+        return byteBuffer;
     }
 
     public boolean equals(Object obj) {
