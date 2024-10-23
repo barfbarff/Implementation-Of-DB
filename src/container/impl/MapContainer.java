@@ -11,30 +11,34 @@ public class MapContainer<Value> implements Container<Long, Value> {
 
 	private final MetaData metaData = new MetaData();
 	private final Map<Long, Value> hashMap = new HashMap<>();
+	private boolean isOpen = false;
 	
 	public MapContainer() {
-		metaData.setIntProperty("isOpen", 0);
 		metaData.setLongProperty("currentKey", 0L);
 	}
 	
 	@Override
 	public MetaData getMetaData() {
+		if(!isOpen) {
+			throw new IllegalStateException();
+		}
+
 		return metaData;
 	}
 	
 	@Override
 	public void open() {
-		metaData.setIntProperty("isOpen", 1);
+		isOpen = true;
 	}
 
 	@Override
 	public void close() {
-		metaData.setIntProperty("isOpen", 0);
+		isOpen = false;
 	}
 	
 	@Override
 	public Long reserve() throws IllegalStateException {
-		if(metaData.getIntProperty("isOpen") == 0) {
+		if(!isOpen) {
 			throw new IllegalStateException();
 		}
 
@@ -46,16 +50,28 @@ public class MapContainer<Value> implements Container<Long, Value> {
 
 	@Override
 	public Value get(Long key) throws NoSuchElementException {
+		if(!isOpen) {
+			throw new IllegalStateException();
+		}
+
 		return hashMap.get(key);
 	}
 
 	@Override
 	public void update(Long key, Value value) throws NoSuchElementException {
+		if(!isOpen) {
+			throw new IllegalStateException();
+		}
+
 		hashMap.put(key, value);
 	}
 
 	@Override
 	public void remove(Long key) throws NoSuchElementException {
+		if(!isOpen) {
+			throw new IllegalStateException();
+		}
+
 		hashMap.remove(key);
 	}
 }

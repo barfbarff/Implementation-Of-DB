@@ -15,25 +15,9 @@ public class StocksBuffer extends RecordsBuffer {
     }
 
     @Override
-    public byte[] getRecordAt(long recordStartIndex) {
-        return getByteArray(recordStartIndex, getSizeRecordAt(recordStartIndex));
-    }
-
-    @Override
-    public byte[] getRecordNumbered(long recordNumber) {
-        return getByteArray(getStartIndexRecordNumbered(recordNumber),
-                            getSizeRecordNumbered(recordNumber));
-    }
-
-    @Override
     public int getSizeRecordAt(long recordStartIndex) {
         return idByteSize + getNameSizeRecordAt(recordStartIndex) + nameLengthByteSize
                 + timestampByteSize + marketValueByteSize;
-    }
-
-    @Override
-    public int getSizeRecordNumbered(long recordNumber) {
-        return getSizeRecordAt(getStartIndexRecordNumbered(recordNumber));
     }
 
     @Override

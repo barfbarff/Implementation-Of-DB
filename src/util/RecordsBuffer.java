@@ -34,13 +34,20 @@ public abstract class RecordsBuffer {
         return byteArray;
     }
 
-    public abstract byte[] getRecordAt(long recordStartIndex);
+    public byte[] getRecordNumbered(long recordNumber) {
+        return getByteArray(getStartIndexRecordNumbered(recordNumber),
+                getSizeRecordNumbered(recordNumber));
+    }
 
-    public abstract byte[] getRecordNumbered(long recordNumber);
+    public byte[] getRecordAt(long recordStartIndex) {
+        return getByteArray(recordStartIndex, getSizeRecordAt(recordStartIndex));
+    }
+
+    public int getSizeRecordNumbered(long recordNumber) {
+        return getSizeRecordAt(getStartIndexRecordNumbered(recordNumber));
+    }
 
     public abstract int getSizeRecordAt(long recordNumber);
-
-    public abstract int getSizeRecordNumbered(long recordNumber);
 
     public abstract int getStartIndexRecordNumbered(long recordNumber);
 }
