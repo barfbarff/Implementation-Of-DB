@@ -1,43 +1,42 @@
 package util;
 
-import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
-public class StocksBuffer {
-
-    private final RandomAccessFile file;
+public class StocksBuffer extends RecordsBuffer {
 
     private final int idByteSize = 8;
     private final int nameLengthByteSize = 2;
     private final int timestampByteSize = 8;
     private final int marketValueByteSize = 8;
 
-    private long size;
-
     public StocksBuffer(RandomAccessFile file) {
-        this.file = file;
-        try {
-            size = file.length();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        super(file);
     }
 
+    @Override
     public byte[] getRecordAt(long recordStartIndex) {
         return getByteArray(recordStartIndex, getSizeRecordAt(recordStartIndex));
     }
 
+    @Override
     public byte[] getRecordNumbered(long recordNumber) {
         return getByteArray(getStartIndexRecordNumbered(recordNumber),
                             getSizeRecordNumbered(recordNumber));
     }
 
+    @Override
     public int getSizeRecordAt(long recordStartIndex) {
         return idByteSize + getNameSizeRecordAt(recordStartIndex) + nameLengthByteSize
                 + timestampByteSize + marketValueByteSize;
     }
 
+    @Override
+    public int getSizeRecordNumbered(long recordNumber) {
+        return getSizeRecordAt(getStartIndexRecordNumbered(recordNumber));
+    }
+
+    @Override
     public int getStartIndexRecordNumbered(long recordNumber) {
         int currentRecordStartIndex = 0;
         int currentRecordNameSize = getNameSizeRecordAt(currentRecordStartIndex);
@@ -51,29 +50,8 @@ public class StocksBuffer {
         return currentRecordStartIndex;
     }
 
-    public int getSizeRecordNumbered(long recordNumber) {
-        return getSizeRecordAt(getStartIndexRecordNumbered(recordNumber));
-    }
-
-    public long getSize() {
-        return size;
-    }
-
     private int getNameSizeRecordAt(long recordStartIndex) {
         byte[] byteArray = getByteArray(recordStartIndex + idByteSize, nameLengthByteSize);
         return ByteBuffer.wrap(byteArray).getShort();
-    }
-
-    private byte[] getByteArray(long startIndex, int length) {
-        byte[] byteArray = new byte[length];
-
-        try{
-            file.seek(startIndex);
-            file.read(byteArray, 0, length);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return byteArray;
     }
 }
