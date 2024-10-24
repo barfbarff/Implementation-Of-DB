@@ -1,4 +1,4 @@
-package util;
+package util.records;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -27,31 +27,31 @@ public abstract class RecordsBuffer {
         return size;
     }
 
-    protected byte[] getByteArray(long startIndex, int length) throws IOException {
+    protected ByteBuffer getByteBuffer(long startIndex, int length) throws IOException {
         byte[] byteArray = new byte[length];
         file.seek(startIndex);
         file.read(byteArray, 0, length);
-        return byteArray;
-    }
-
-    public byte[] getRecordNumbered(long recordNumber) throws NoSuchElementException, IOException{
-        return getByteArray(getStartIndexRecordNumbered(recordNumber),
-                            getSizeRecordNumbered(recordNumber));
-    }
-
-    public byte[] getRecordAt(long recordStartIndex) throws NoSuchElementException, IOException {
-        if (recordStartIndex > size) {
-            throw new NoSuchElementException();
-        }
-
-        return getByteArray(recordStartIndex, getSizeRecordAt(recordStartIndex));
+        return ByteBuffer.wrap(byteArray);
     }
 
     public int getSizeRecordNumbered(long recordNumber) throws NoSuchElementException, IOException{
         return getSizeRecordAt(getStartIndexRecordNumbered(recordNumber));
     }
 
+    public ByteBuffer getRecordAt(long recordStartIndex) throws IOException {
+        return getByteBuffer(recordStartIndex, getSizeRecordAt(recordStartIndex));
+    }
+
+    public ByteBuffer getRecordNumbered(long recordNumber) throws NoSuchElementException, IOException{
+        return getByteBuffer(getStartIndexRecordNumbered(recordNumber),
+                             getSizeRecordNumbered(recordNumber));
+    }
+
+    public abstract void updateRecordAt(long recordStartIndex, ByteBuffer byteBuffer) throws IOException;
+
     public abstract void updateRecordNumbered(long recordNumber, ByteBuffer byteBuffer) throws NoSuchElementException, IOException;
+
+    public abstract void deleteRecordAt(long recordStartIndex) throws IOException;
 
     public abstract void deleteRecordNumbered(long recordNumber) throws NoSuchElementException, IOException;
 

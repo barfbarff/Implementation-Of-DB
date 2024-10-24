@@ -1,6 +1,6 @@
 package stocks;
 
-import util.StocksBuffer;
+import util.records.StocksBuffer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,15 +19,14 @@ public class Stocks implements Iterable<StockEntry> {
     }
 
     public StockEntry get(int i) {
-        byte[] stockEntryByteArray = new byte[0];
-
         try {
-            stockEntryByteArray = stocksBuffer.getRecordNumbered(i);
+            ByteBuffer byteBuffer = stocksBuffer.getRecordNumbered(i);
+            return new StockEntry(byteBuffer);
         } catch (NoSuchElementException | IOException e) {
             e.printStackTrace();
         }
 
-        return new StockEntry(ByteBuffer.wrap(stockEntryByteArray));
+        return null;
     }
 
     @Override

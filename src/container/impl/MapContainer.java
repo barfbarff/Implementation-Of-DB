@@ -19,7 +19,7 @@ public class MapContainer<Value> implements Container<Long, Value> {
 	
 	@Override
 	public MetaData getMetaData() {
-		if(!isOpen) {
+		if (!isOpen) {
 			throw new IllegalStateException();
 		}
 
@@ -38,7 +38,7 @@ public class MapContainer<Value> implements Container<Long, Value> {
 	
 	@Override
 	public Long reserve() throws IllegalStateException {
-		if(!isOpen) {
+		if (!isOpen) {
 			throw new IllegalStateException();
 		}
 
@@ -50,7 +50,7 @@ public class MapContainer<Value> implements Container<Long, Value> {
 
 	@Override
 	public Value get(Long key) throws NoSuchElementException {
-		if(!isOpen) {
+		if (!isOpen) {
 			throw new IllegalStateException();
 		}
 
@@ -59,7 +59,7 @@ public class MapContainer<Value> implements Container<Long, Value> {
 
 	@Override
 	public void update(Long key, Value value) throws NoSuchElementException {
-		if(!isOpen) {
+		if (!isOpen) {
 			throw new IllegalStateException();
 		}
 
@@ -68,7 +68,7 @@ public class MapContainer<Value> implements Container<Long, Value> {
 
 	@Override
 	public void remove(Long key) throws NoSuchElementException {
-		if(!isOpen) {
+		if (!isOpen) {
 			throw new IllegalStateException();
 		}
 

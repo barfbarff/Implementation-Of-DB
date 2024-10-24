@@ -1,4 +1,4 @@
-package util;
+package util.records;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -18,7 +18,7 @@ public class FixedSizeRecordsBuffer extends RecordsBuffer{
     }
 
     @Override
-    public byte[] getRecordNumbered(long recordNumber) throws NoSuchElementException, IOException {
+    public ByteBuffer getRecordNumbered(long recordNumber) throws NoSuchElementException, IOException {
         int startIndex = getStartIndexRecordNumbered(recordNumber);
         int trueRecordSize = getSizeRecordAt(startIndex) - deletionFlagByteSize;
 
@@ -26,25 +26,30 @@ public class FixedSizeRecordsBuffer extends RecordsBuffer{
             throw new NoSuchElementException();
         }
 
-        return getByteArray(startIndex + deletionFlagByteSize, trueRecordSize);
+        return getByteBuffer(startIndex + deletionFlagByteSize, trueRecordSize);
+    }
+
+    @Override
+    public void updateRecordAt(long recordStartIndex, ByteBuffer byteBuffer) throws IOException {
+        file.seek(recordStartIndex + deletionFlagByteSize);
+        file.write(byteBuffer.array());
     }
 
     @Override
     public void updateRecordNumbered(long recordNumber, ByteBuffer byteBuffer) throws NoSuchElementException, IOException {
-        file.seek(getStartIndexRecordNumbered(recordNumber) + deletionFlagByteSize);
-        file.write(byteBuffer.array());
+        updateRecordAt(getStartIndexRecordNumbered(recordNumber), byteBuffer);
     }
 
     @Override
+    public void deleteRecordAt(long recordStartIndex) throws IOException {
+        file.seek(recordStartIndex);
+        file.write((byte) 1);
+    }
+
+
+    @Override
     public void deleteRecordNumbered(long recordNumber) throws NoSuchElementException, IOException {
-        byte[] byteArray = getRecordNumbered(recordNumber);
-
-        ByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);
-        byteBuffer.put((byte) 1);
-        byteBuffer.flip();
-
-        file.seek(getStartIndexRecordNumbered(recordNumber));
-        file.write(byteBuffer.array());
+        deleteRecordAt(getStartIndexRecordNumbered(recordNumber));
     }
 
     @Override
@@ -73,7 +78,7 @@ public class FixedSizeRecordsBuffer extends RecordsBuffer{
     }
 
     private boolean isRecordDeleted(int startIndex) throws IOException {
-        byte deletionFlag = getByteArray(startIndex, deletionFlagByteSize)[0];
+        byte deletionFlag = getByteBuffer(startIndex, deletionFlagByteSize).get();
         return deletionFlag == 1;
     }
 }

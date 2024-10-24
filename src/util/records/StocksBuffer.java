@@ -1,4 +1,4 @@
-package util;
+package util.records;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -17,7 +17,13 @@ public class StocksBuffer extends RecordsBuffer {
     }
 
     @Override
+    public void updateRecordAt(long recordStartIndex, ByteBuffer byteBuffer) {}
+
+    @Override
     public void updateRecordNumbered(long recordNumber, ByteBuffer byteBuffer) {}
+
+    @Override
+    public void deleteRecordAt(long recordStartIndex) {}
 
     @Override
     public void deleteRecordNumbered(long recordNumber) {}
@@ -36,10 +42,10 @@ public class StocksBuffer extends RecordsBuffer {
     protected int getStartIndexRecordNumbered(long recordNumber) throws NoSuchElementException, IOException {
         int currentRecordStartIndex = 0;
         int currentRecordNameSize = getNameSizeRecordAt(currentRecordStartIndex);
+        int fixedByteSize = idByteSize + nameLengthByteSize + timestampByteSize + marketValueByteSize;
 
         for (int i = 1; i <= recordNumber; i++) {
-            currentRecordStartIndex += idByteSize + nameLengthByteSize
-                    + currentRecordNameSize + timestampByteSize + marketValueByteSize;
+            currentRecordStartIndex += fixedByteSize + currentRecordNameSize;
             currentRecordNameSize = getNameSizeRecordAt(currentRecordStartIndex);
         }
 
@@ -51,8 +57,7 @@ public class StocksBuffer extends RecordsBuffer {
     }
 
     private int getNameSizeRecordAt(long recordStartIndex) throws IOException {
-        byte[] byteArray = getByteArray(recordStartIndex + idByteSize, nameLengthByteSize);
-        return ByteBuffer.wrap(byteArray).getShort();
+        return getByteBuffer(recordStartIndex + idByteSize, nameLengthByteSize).getShort();
     }
 
 }

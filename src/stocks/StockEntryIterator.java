@@ -1,6 +1,6 @@
 package stocks;
 
-import util.StocksBuffer;
+import util.records.StocksBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -21,15 +21,14 @@ public class StockEntryIterator implements Iterator<StockEntry> {
     }
 
     public StockEntry next() {
-        byte[] byteArray = new byte[0];
-
         try {
-            byteArray = stocksBuffer.getRecordAt(pos);
+            ByteBuffer byteBuffer = stocksBuffer.getRecordAt(pos);
             pos += stocksBuffer.getSizeRecordAt(pos);
+            return new StockEntry(byteBuffer);
         } catch (NoSuchElementException | IOException e) {
             e.printStackTrace();
         }
 
-        return new StockEntry(ByteBuffer.wrap(byteArray));
+        return null;
     }
 }

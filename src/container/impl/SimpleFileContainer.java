@@ -4,7 +4,7 @@ import container.Container;
 import io.FixedSizeSerializer;
 import io.LongSerializer;
 import util.ContainerRuntimeException;
-import util.FixedSizeRecordsBuffer;
+import util.records.FixedSizeRecordsBuffer;
 import util.MetaData;
 
 import java.io.FileNotFoundException;
@@ -45,7 +45,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 	
 	@Override
 	public MetaData getMetaData() {
-		if(!isOpen) {
+		if (!isOpen) {
 			throw new IllegalStateException();
 		}
 
@@ -76,7 +76,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 	
 	@Override
 	public Long reserve() throws IllegalStateException {
-		if(!isOpen) {
+		if (!isOpen) {
 			throw new IllegalStateException();
 		}
 
@@ -103,9 +103,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 		}
 
 		try {
-			byte[] byteArray = recordsBuffer.getRecordNumbered(key);
-
-			ByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);
+			ByteBuffer byteBuffer = recordsBuffer.getRecordNumbered(key);
 			keySerializer.serialize(key, byteBuffer);
 			valueSerializer.serialize(value, byteBuffer);
 
@@ -134,9 +132,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 
 		Value value = null;
 		try {
-			byte[] byteArray = recordsBuffer.getRecordNumbered(key);
-			
-			ByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);
+			ByteBuffer byteBuffer = recordsBuffer.getRecordNumbered(key);
 			keySerializer.deserialize(byteBuffer);
 			value = valueSerializer.deserialize(byteBuffer);
 		} catch (IOException e) {
