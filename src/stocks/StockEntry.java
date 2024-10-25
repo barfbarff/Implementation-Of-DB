@@ -17,18 +17,15 @@ public class StockEntry {
     }
 
     public StockEntry(ByteBuffer bb) {
-        int id = (int) bb.getLong();
+        this.id = (int) bb.getLong();
 
         byte[] nameByteArray = new byte[bb.getShort()];
         bb.get(nameByteArray);
-        String name = new String(nameByteArray, StandardCharsets.UTF_8);
+        this.name = new String(nameByteArray, StandardCharsets.UTF_8);
 
-        int timestamp = (int) bb.getLong();
+        this.ts = (int) bb.getLong();
 
-        double marketValue = bb.getDouble();
-
-        this(id, name, timestamp, marketValue);
-
+        this.value = bb.getDouble();
     }
 
     public long getId() {
