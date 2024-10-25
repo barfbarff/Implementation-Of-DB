@@ -8,30 +8,28 @@ import java.util.NoSuchElementException;
 public class FixedSizeRecordsBuffer extends RecordsBuffer{
 
     private final int deletionFlagByteSize = 1;
-    private final int keyByteSize;
-    private final int valueByteSize;
+    private final int fixedRecordSize;
 
     public FixedSizeRecordsBuffer(RandomAccessFile file, int keyByteSize, int valueByteSize) {
         super(file);
-        this.keyByteSize = keyByteSize;
-        this.valueByteSize = valueByteSize;
+        this.fixedRecordSize = deletionFlagByteSize + keyByteSize + valueByteSize;
     }
 
     @Override
     public ByteBuffer getRecordNumbered(long recordNumber) throws NoSuchElementException, IOException {
         int startIndex = getStartIndexRecordNumbered(recordNumber);
-        int trueRecordSize = getSizeRecordAt(startIndex) - deletionFlagByteSize;
+        int recordSize = getSizeRecordAt(startIndex);
 
         if (isRecordDeleted(startIndex)) {
             throw new NoSuchElementException();
         }
 
-        return getByteBuffer(startIndex + deletionFlagByteSize, trueRecordSize);
+        return getByteBuffer(startIndex, recordSize);
     }
 
     @Override
     public void updateRecordAt(long recordStartIndex, ByteBuffer byteBuffer) throws IOException {
-        file.seek(recordStartIndex + deletionFlagByteSize);
+        file.seek(recordStartIndex);
         file.write(byteBuffer.array());
     }
 
@@ -58,7 +56,7 @@ public class FixedSizeRecordsBuffer extends RecordsBuffer{
             throw new NoSuchElementException();
         }
 
-        return deletionFlagByteSize + keyByteSize + valueByteSize;
+        return fixedRecordSize;
     }
 
     @Override
@@ -66,8 +64,7 @@ public class FixedSizeRecordsBuffer extends RecordsBuffer{
         int currentRecordStartIndex = 0;
 
         for (int i = 1; i <= recordNumber; i++) {
-            currentRecordStartIndex += deletionFlagByteSize + keyByteSize
-                    + valueByteSize;
+            currentRecordStartIndex += fixedRecordSize;
         }
 
         if (currentRecordStartIndex > getSize()) {

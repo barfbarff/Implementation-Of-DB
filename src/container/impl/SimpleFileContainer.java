@@ -104,6 +104,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 
 		try {
 			ByteBuffer byteBuffer = recordsBuffer.getRecordNumbered(key);
+			byteBuffer.put((byte) 0);
 			keySerializer.serialize(key, byteBuffer);
 			valueSerializer.serialize(value, byteBuffer);
 
@@ -111,8 +112,9 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 
 			recordsBuffer.updateRecordNumbered(key, byteBuffer);
 
-			long newSize = metaData.getLongProperty("size") + byteBuffer.limit();
-			metaData.setLongProperty("size", newSize);
+			// TODO: currentSize should only be changed when the end position of this record exceeds currentSize
+			long newSize = metaData.getLongProperty("currentSize") + byteBuffer.limit() + 1;
+			metaData.setLongProperty("currentSize", newSize);
 			metaData.writeTo(Path.of(pathToMetadataFile));
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -126,13 +128,14 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		if (key > metaData.getLongProperty("currentkey")) {
+		if (key > metaData.getLongProperty("currentKey")) {
 			throw new NoSuchElementException();
 		}
 
 		Value value = null;
 		try {
 			ByteBuffer byteBuffer = recordsBuffer.getRecordNumbered(key);
+			byteBuffer.get();
 			keySerializer.deserialize(byteBuffer);
 			value = valueSerializer.deserialize(byteBuffer);
 		} catch (IOException e) {
@@ -148,7 +151,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		if (key > metaData.getLongProperty("currentkey")) {
+		if (key > metaData.getLongProperty("currentKey")) {
 			throw new NoSuchElementException();
 		}
 

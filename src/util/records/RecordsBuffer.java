@@ -8,15 +8,13 @@ import java.util.NoSuchElementException;
 public abstract class RecordsBuffer {
 
     protected final RandomAccessFile file;
-    private long size;
 
     public RecordsBuffer(RandomAccessFile file) {
         this.file = file;
-        try {
-            size = file.length();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    }
+
+    public void clear() throws IOException{
+        file.setLength(0);
     }
 
     public void close() throws IOException{
@@ -24,7 +22,13 @@ public abstract class RecordsBuffer {
     }
 
     public long getSize() {
-        return size;
+        try {
+            return file.length();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
     }
 
     protected ByteBuffer getByteBuffer(long startIndex, int length) throws IOException {
@@ -45,6 +49,11 @@ public abstract class RecordsBuffer {
     public ByteBuffer getRecordNumbered(long recordNumber) throws NoSuchElementException, IOException{
         return getByteBuffer(getStartIndexRecordNumbered(recordNumber),
                              getSizeRecordNumbered(recordNumber));
+    }
+
+    public void append(ByteBuffer byteBuffer) throws IOException {
+        file.seek(getSize());
+        file.write(byteBuffer.array());
     }
 
     public abstract void updateRecordAt(long recordStartIndex, ByteBuffer byteBuffer) throws IOException;
