@@ -126,9 +126,13 @@ class SimpleFileContainerTest {
         simpleFileContainer.insert(1024);
         simpleFileContainer.insert(2048);
         simpleFileContainer.insert(4096);
-        assertEquals(simpleFileContainer.get(6L), 1024);
-        assertEquals(simpleFileContainer.get(7L), 2048);
-        assertEquals(simpleFileContainer.get(8L), 4096);
+        try {
+            assertEquals(utils.get(6L), 1024);
+            assertEquals(utils.get(7L), 2048);
+            assertEquals(utils.get(8L), 4096);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         MetaData metaData = simpleFileContainer.getMetaData();
         assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 8);
