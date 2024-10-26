@@ -54,6 +54,10 @@ public class MapContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
+		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
+			throw new NoSuchElementException();
+		}
+
 		return hashMap.get(key);
 	}
 
@@ -63,6 +67,10 @@ public class MapContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
+		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
+			throw new NoSuchElementException();
+		}
+
 		hashMap.put(key, value);
 	}
 
@@ -70,6 +78,10 @@ public class MapContainer<Value> implements Container<Long, Value> {
 	public void remove(Long key) throws NoSuchElementException {
 		if (!isOpen) {
 			throw new IllegalStateException();
+		}
+
+		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
+			throw new NoSuchElementException();
 		}
 
 		hashMap.remove(key);
