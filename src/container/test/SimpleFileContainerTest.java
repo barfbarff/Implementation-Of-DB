@@ -19,7 +19,7 @@ class SimpleFileContainerTest {
     static String fileNamePrefix = "test";
 
     @BeforeEach
-    void setUp() {
+    void setUpEachTestCase() {
         Path path = Path.of("src/container/data").toAbsolutePath();
         IntSerializer intSerializer = new IntSerializer();
         utils = new SimpleFileContainerTestUtils<>(path, intSerializer);
@@ -43,6 +43,23 @@ class SimpleFileContainerTest {
     @AfterAll
     static void cleanUp() {
         utils.destroy();
+    }
+
+    @Test
+    void testReserveClosedContainer() {
+        assertThrows(IllegalStateException.class, () -> {
+            simpleFileContainer.reserve();
+        });
+    }
+
+    @Test
+    void testReserveSuccessful() {
+        simpleFileContainer.open();
+
+        long newKey = simpleFileContainer.reserve();
+        assertEquals(newKey, 6L);
+        MetaData metaData = simpleFileContainer.getMetaData();
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 6L);
     }
 
     @Test
