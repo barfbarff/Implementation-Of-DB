@@ -39,7 +39,7 @@ public class StocksBuffer extends RecordsBuffer {
     }
 
     @Override
-    protected int getStartIndexRecordNumbered(long recordNumber) throws NoSuchElementException, IOException {
+    public int getStartIndexRecordNumbered(long recordNumber) throws NoSuchElementException, IOException {
         int currentRecordStartIndex = 0;
         int currentRecordNameSize = getNameSizeRecordAt(currentRecordStartIndex);
         int fixedByteSize = idByteSize + nameLengthByteSize + timestampByteSize + marketValueByteSize;

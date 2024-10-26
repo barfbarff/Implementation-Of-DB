@@ -1,5 +1,6 @@
 package container.test.utils;
 
+import container.impl.MetaDataFields;
 import io.FixedSizeSerializer;
 import io.LongSerializer;
 import util.MetaData;
@@ -43,8 +44,8 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
 
     public void initMetadataFile() throws IOException {
         MetaData metaData = new MetaData();
-        metaData.setLongProperty("currentKey", -1);
-        metaData.setLongProperty("currentSize", 0);
+        metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), -1);
+        metaData.setLongProperty(MetaDataFields.CURRENT_SIZE.toString(), 0);
         metaData.writeTo(pathToMetadataFile);
     }
 
@@ -59,10 +60,10 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
 
         MetaData metaData = new MetaData();
         metaData.readFrom(pathToMetadataFile);
-        long newKey = metaData.getLongProperty("currentKey") + 1;
-        long newSize = metaData.getLongProperty("currentSize") + byteBufferSize;
-        metaData.setLongProperty("currentKey", newKey);
-        metaData.setLongProperty("currentSize", newSize);
+        long newKey = metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()) + 1;
+        long newSize = metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString()) + byteBufferSize;
+        metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), newKey);
+        metaData.setLongProperty(MetaDataFields.CURRENT_SIZE.toString(), newSize);
 
         metaData.writeTo(pathToMetadataFile);
         recordsBuffer.append(byteBuffer);

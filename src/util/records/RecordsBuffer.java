@@ -31,7 +31,7 @@ public abstract class RecordsBuffer {
         return -1;
     }
 
-    protected ByteBuffer getByteBuffer(long startIndex, int length) throws IOException {
+    public ByteBuffer getByteBuffer(long startIndex, int length) throws IOException {
         byte[] byteArray = new byte[length];
         file.seek(startIndex);
         file.read(byteArray, 0, length);
@@ -64,7 +64,7 @@ public abstract class RecordsBuffer {
 
     public abstract void deleteRecordNumbered(long recordNumber) throws NoSuchElementException, IOException;
 
-    protected abstract int getSizeRecordAt(long recordStartIndex) throws NoSuchElementException, IOException;
+    public abstract int getSizeRecordAt(long recordStartIndex) throws NoSuchElementException, IOException;
 
-    protected abstract int getStartIndexRecordNumbered(long recordNumber) throws NoSuchElementException, IOException;
+    public abstract int getStartIndexRecordNumbered(long recordNumber) throws NoSuchElementException, IOException;
 }

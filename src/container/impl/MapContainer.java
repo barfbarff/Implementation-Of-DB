@@ -14,7 +14,7 @@ public class MapContainer<Value> implements Container<Long, Value> {
 	private boolean isOpen = false;
 	
 	public MapContainer() {
-		metaData.setLongProperty("currentKey", 0L);
+		metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), 0L);
 	}
 	
 	@Override
@@ -42,8 +42,8 @@ public class MapContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		long newKey = metaData.getLongProperty("currentKey") + 1;
-		metaData.setLongProperty("currentKey", newKey);
+		long newKey = metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()) + 1;
+		metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), newKey);
 		return newKey;
 	}
 	

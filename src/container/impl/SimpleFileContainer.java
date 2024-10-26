@@ -29,8 +29,8 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 	private final MetaData metaData;
 
 	public SimpleFileContainer(Path directory, String filenamePrefix, FixedSizeSerializer<Value> serializer) {
-		this.pathToDataFile = directory.resolve(filenamePrefix + "_data.bin").toString();
-		this.pathToMetadataFile = directory.resolve(filenamePrefix + "_meta.bin").toString();
+		this.pathToDataFile = directory.resolve(filenamePrefix + FilesPostfix.DATA).toString();
+		this.pathToMetadataFile = directory.resolve(filenamePrefix + FilesPostfix.METADATA).toString();
 
 		this.keySerializer = new LongSerializer();
 		this.valueSerializer = serializer;
@@ -80,8 +80,8 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		long newKey = metaData.getLongProperty("currentKey") + 1;
-		metaData.setLongProperty("currentKey", newKey);
+		long newKey = metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()) + 1;
+		metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), newKey);
 
 		try {
 			metaData.writeTo(Path.of(pathToMetadataFile));
@@ -98,12 +98,15 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		if (key > metaData.getLongProperty("currentKey")) {
+		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
 			throw new NoSuchElementException();
 		}
 
 		try {
-			ByteBuffer byteBuffer = recordsBuffer.getRecordNumbered(key);
+			int startIndex = recordsBuffer.getStartIndexRecordNumbered(key);
+			int recordSize = recordsBuffer.getSizeRecordAt(key);
+
+			ByteBuffer byteBuffer = recordsBuffer.getByteBuffer(startIndex, recordSize);
 			byteBuffer.put((byte) 0);
 			keySerializer.serialize(key, byteBuffer);
 			valueSerializer.serialize(value, byteBuffer);
@@ -112,10 +115,13 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 
 			recordsBuffer.updateRecordNumbered(key, byteBuffer);
 
-			// TODO: currentSize should only be changed when the end position of this record exceeds currentSize
-			long newSize = metaData.getLongProperty("currentSize") + byteBuffer.limit() + 1;
-			metaData.setLongProperty("currentSize", newSize);
-			metaData.writeTo(Path.of(pathToMetadataFile));
+			int endIndex = startIndex + recordSize;
+			long currentFileSize = metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString());
+			if (endIndex > currentFileSize) {
+				long newSize = currentFileSize + byteBuffer.limit() + 1;
+				metaData.setLongProperty(MetaDataFields.CURRENT_SIZE.toString(), newSize);
+				metaData.writeTo(Path.of(pathToMetadataFile));
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -128,7 +134,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		if (key > metaData.getLongProperty("currentKey")) {
+		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
 			throw new NoSuchElementException();
 		}
 
@@ -151,7 +157,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		if (key > metaData.getLongProperty("currentKey")) {
+		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
 			throw new NoSuchElementException();
 		}
 

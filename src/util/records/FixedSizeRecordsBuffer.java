@@ -51,7 +51,7 @@ public class FixedSizeRecordsBuffer extends RecordsBuffer{
     }
 
     @Override
-    protected int getSizeRecordAt(long recordStartIndex) throws NoSuchElementException{
+    public int getSizeRecordAt(long recordStartIndex) throws NoSuchElementException{
         if(recordStartIndex > getSize()) {
             throw new NoSuchElementException();
         }
@@ -60,7 +60,7 @@ public class FixedSizeRecordsBuffer extends RecordsBuffer{
     }
 
     @Override
-    protected int getStartIndexRecordNumbered(long recordNumber) throws NoSuchElementException{
+    public int getStartIndexRecordNumbered(long recordNumber) throws NoSuchElementException{
         int currentRecordStartIndex = 0;
 
         for (int i = 1; i <= recordNumber; i++) {

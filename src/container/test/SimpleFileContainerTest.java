@@ -1,9 +1,9 @@
 package container.test;
 
+import container.impl.MetaDataFields;
 import container.impl.SimpleFileContainer;
 import container.test.utils.SimpleFileContainerTestUtils;
 import io.IntSerializer;
-import org.junit.FixMethodOrder;
 import org.junit.jupiter.api.*;
 import util.MetaData;
 
@@ -13,10 +13,10 @@ import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@FixMethodOrder
 class SimpleFileContainerTest {
     static SimpleFileContainer<Integer> simpleFileContainer;
     static SimpleFileContainerTestUtils<IntSerializer, Integer> utils;
+    static String fileNamePrefix = "test";
 
     @BeforeEach
     void setUp() {
@@ -37,7 +37,7 @@ class SimpleFileContainerTest {
             e.printStackTrace();
         }
 
-        simpleFileContainer = new SimpleFileContainer<>(path, "test", intSerializer);
+        simpleFileContainer = new SimpleFileContainer<>(path, fileNamePrefix, intSerializer);
     }
 
     @AfterAll
@@ -57,20 +57,10 @@ class SimpleFileContainerTest {
         simpleFileContainer.open();
 
         MetaData metaData = simpleFileContainer.getMetaData();
-        assertEquals(metaData.getLongProperty("currentKey"), 5);
-        assertEquals(metaData.getLongProperty("currentSize"),78 );
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString()),78 );
 
         simpleFileContainer.close();
-    }
-
-    @Test
-    void testGetMetaDataAfterInsert() {
-        // TODO
-    }
-
-    @Test
-    void testGetMetaDataAfterUpdate() {
-        // TODO
     }
 
     @Test
@@ -123,12 +113,9 @@ class SimpleFileContainerTest {
         assertEquals(simpleFileContainer.get(7L), 2048);
         assertEquals(simpleFileContainer.get(8L), 4096);
 
-        // TODO: Mock metaData using Mockito
         MetaData metaData = simpleFileContainer.getMetaData();
-        assertEquals(metaData.getLongProperty("currentKey"), 8);
-        assertEquals(metaData.getLongProperty("currentSize"), 120);
-
-
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 8);
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString()), 120);
 
         simpleFileContainer.close();
     }
@@ -170,7 +157,9 @@ class SimpleFileContainerTest {
             e.printStackTrace();
         }
 
-        // TODO: Mock metaData using Mockito and ensure that currentKey and currentSize are unchanged
+        MetaData metaData = simpleFileContainer.getMetaData();
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString()), 78);
     }
 
     @Test
@@ -193,6 +182,25 @@ class SimpleFileContainerTest {
 
     @Test
     void testRemoveSuccessful() {
-        // TODO
+        simpleFileContainer.open();
+
+        simpleFileContainer.remove(2L);
+        try {
+            assertEquals(utils.get(0L), 123);
+            assertEquals(utils.get(1L), 456);
+            assertThrows(NoSuchElementException.class, () -> {
+                utils.get(2L);
+            });
+            assertEquals(utils.get(3L), 321);
+            assertEquals(utils.get(4L), 654);
+            assertEquals(utils.get(5L), 987);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        MetaData metaData = simpleFileContainer.getMetaData();
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString()), 78);
     }
 }
