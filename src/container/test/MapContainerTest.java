@@ -211,12 +211,12 @@ public class MapContainerTest {
 
         mapContainer.remove(2L);
 
-        assertEquals(mapContainer.get(0L), 123);
-        assertEquals(mapContainer.get(1L), 456);
-        assertNull(mapContainer.get(2L));
-        assertEquals(mapContainer.get(3L), 321);
-        assertEquals(mapContainer.get(4L), 654);
-        assertEquals(mapContainer.get(5L), 987);
+        assertEquals(hashMap.get(0L), 123);
+        assertEquals(hashMap.get(1L), 456);
+        assertNull(hashMap.get(2L));
+        assertEquals(hashMap.get(3L), 321);
+        assertEquals(hashMap.get(4L), 654);
+        assertEquals(hashMap.get(5L), 987);
 
 
         MetaData metaData = mapContainer.getMetaData();

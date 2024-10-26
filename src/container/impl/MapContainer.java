@@ -54,11 +54,12 @@ public class MapContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
+		Value value = hashMap.get(key);
+		if (value == null) {
 			throw new NoSuchElementException();
 		}
 
-		return hashMap.get(key);
+		return value;
 	}
 
 	@Override
