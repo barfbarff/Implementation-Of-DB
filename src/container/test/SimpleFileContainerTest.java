@@ -14,6 +14,9 @@ import java.util.NoSuchElementException;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SimpleFileContainerTest {
+    // TODO: Replace testing against real files by using mocks with Mockito
+    // TODO: Implement integration tests to test the functions against real files
+
     static SimpleFileContainer<Integer> simpleFileContainer;
     static SimpleFileContainerTestUtils<IntSerializer, Integer> utils;
     static String fileNamePrefix = "test";
@@ -110,6 +113,10 @@ class SimpleFileContainerTest {
         assertEquals(simpleFileContainer.get(3L), 321);
         assertEquals(simpleFileContainer.get(4L), 654);
         assertEquals(simpleFileContainer.get(5L), 987);
+
+        MetaData metaData = simpleFileContainer.getMetaData();
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString()), 78);
 
         simpleFileContainer.close();
     }

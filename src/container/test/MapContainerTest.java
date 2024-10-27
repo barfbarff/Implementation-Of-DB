@@ -10,30 +10,28 @@ import util.MetaData;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class MapContainerTest {
-    // TODO: Replace testing using Reflection with mocking using Mockito
+    // TODO: Replace testing using Reflection by using mocks with Mockito
 
     static MapContainer<Integer> mapContainer = new MapContainer<>();
-    static Field field;
     static Map<Long, Integer> hashMap;
+    static Set<Long> deletedKeys;
 
     @BeforeAll
     @SuppressWarnings("unchecked")
     static void setUp() {
         try {
-            field = mapContainer.getClass().getDeclaredField("hashMap");
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        }
-
-        field.setAccessible(true);
-
-        try {
-            hashMap = (Map<Long, Integer>) field.get(mapContainer);
-        } catch (IllegalAccessException e) {
+            Field hashMapField = mapContainer.getClass().getDeclaredField("hashMap");
+            Field deletedKeysField = mapContainer.getClass().getDeclaredField("deletedKeys");
+            hashMapField.setAccessible(true);
+            deletedKeysField.setAccessible(true);
+            hashMap = (Map<Long, Integer>) hashMapField.get(mapContainer);
+            deletedKeys = (Set<Long>) deletedKeysField.get(mapContainer);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
         }
     }
@@ -41,6 +39,7 @@ public class MapContainerTest {
     @BeforeEach
     void setUpEachTestCase() {
         hashMap.clear();
+        deletedKeys.clear();
         hashMap.put(0L, 123);
         hashMap.put(1L, 456);
         hashMap.put(2L, 789);
@@ -69,6 +68,8 @@ public class MapContainerTest {
         assertEquals(newKey, 6L);
         MetaData metaData = mapContainer.getMetaData();
         assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 6L);
+
+        mapContainer.close();
     }
 
     @Test
@@ -116,6 +117,22 @@ public class MapContainerTest {
         assertEquals(mapContainer.get(3L), 321);
         assertEquals(mapContainer.get(4L), 654);
         assertEquals(mapContainer.get(5L), 987);
+
+        MetaData metaData = mapContainer.getMetaData();
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
+
+        mapContainer.close();
+    }
+
+    @Test
+    void testGetDeletedRecord() {
+        mapContainer.open();
+
+        hashMap.remove(3L);
+        deletedKeys.add(3L);
+        assertThrows(NoSuchElementException.class, () -> {
+            mapContainer.get(3L);
+        });
 
         mapContainer.close();
     }
@@ -185,6 +202,21 @@ public class MapContainerTest {
 
         MetaData metaData = mapContainer.getMetaData();
         assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
+
+        mapContainer.close();
+    }
+
+    @Test
+    void testUpdateRemovedRecord() {
+        mapContainer.open();
+
+        hashMap.remove(3L);
+        deletedKeys.add(3L);
+        assertThrows(NoSuchElementException.class, () -> {
+           mapContainer.update(3L, 1024);
+        });
+
+        mapContainer.close();
     }
 
     @Test
@@ -210,7 +242,6 @@ public class MapContainerTest {
         mapContainer.open();
 
         mapContainer.remove(2L);
-
         assertEquals(hashMap.get(0L), 123);
         assertEquals(hashMap.get(1L), 456);
         assertNull(hashMap.get(2L));
@@ -221,5 +252,20 @@ public class MapContainerTest {
 
         MetaData metaData = mapContainer.getMetaData();
         assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
+
+        mapContainer.close();
+    }
+
+    @Test
+    void testRemoveDeletedRecord() {
+        mapContainer.open();
+
+        hashMap.remove(3L);
+        deletedKeys.add(3L);
+        assertThrows(NoSuchElementException.class, () -> {
+            mapContainer.remove(3L);
+        });
+
+        mapContainer.close();
     }
 }

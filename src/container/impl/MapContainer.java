@@ -3,14 +3,13 @@ package container.impl;
 import container.Container;
 import util.MetaData;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 public class MapContainer<Value> implements Container<Long, Value> {
 
 	private final MetaData metaData = new MetaData();
 	private final Map<Long, Value> hashMap = new HashMap<>();
+	private final Set<Long> deletedKeys = new HashSet<>();
 	private boolean isOpen = false;
 	
 	public MapContainer() {
@@ -68,7 +67,8 @@ public class MapContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
+		Long currentKey = metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString());
+		if (key > currentKey || deletedKeys.contains(key)) {
 			throw new NoSuchElementException();
 		}
 
@@ -81,10 +81,11 @@ public class MapContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
+		Value value = hashMap.remove(key);
+		if (value == null) {
 			throw new NoSuchElementException();
+		} else {
+			deletedKeys.add(key);
 		}
-
-		hashMap.remove(key);
 	}
 }
