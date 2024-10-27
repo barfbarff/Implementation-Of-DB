@@ -107,6 +107,12 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			int recordSize = recordsBuffer.getSizeRecordAt(key);
 
 			ByteBuffer byteBuffer = recordsBuffer.getByteBuffer(startIndex, recordSize);
+			byte deletionFlag = byteBuffer.get();
+			if (deletionFlag == 1) {
+				throw new NoSuchElementException();
+			}
+
+			byteBuffer.position(0);
 			byteBuffer.put((byte) 0);
 			keySerializer.serialize(key, byteBuffer);
 			valueSerializer.serialize(value, byteBuffer);
@@ -141,7 +147,12 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 		Value value = null;
 		try {
 			ByteBuffer byteBuffer = recordsBuffer.getRecordNumbered(key);
-			byteBuffer.get();
+
+			byte deletionFlag = byteBuffer.get();
+			if (deletionFlag == 1) {
+				throw new NoSuchElementException();
+			}
+
 			keySerializer.deserialize(byteBuffer);
 			value = valueSerializer.deserialize(byteBuffer);
 		} catch (IOException e) {
@@ -162,7 +173,15 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 		}
 
 		try {
-			recordsBuffer.deleteRecordNumbered(key);
+			int startIndex = recordsBuffer.getStartIndexRecordNumbered(key);
+
+			ByteBuffer byteBuffer = recordsBuffer.getRecordAt(startIndex);
+			byte deletionFlag = byteBuffer.get();
+			if (deletionFlag == 1) {
+				throw new NoSuchElementException();
+			}
+
+			recordsBuffer.deleteRecordAt(startIndex);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -60,6 +60,8 @@ class SimpleFileContainerTest {
         assertEquals(newKey, 6L);
         MetaData metaData = simpleFileContainer.getMetaData();
         assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 6L);
+
+        simpleFileContainer.close();
     }
 
     @Test
@@ -113,6 +115,23 @@ class SimpleFileContainerTest {
     }
 
     @Test
+    void testGetDeletedRecord() {
+        simpleFileContainer.open();
+
+        try {
+            utils.delete(3L);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        assertThrows(NoSuchElementException.class, () -> {
+            simpleFileContainer.get(3L);
+        });
+
+        simpleFileContainer.close();
+    }
+
+    @Test
     void testInsertClosedContainer() {
         assertThrows(IllegalStateException.class, () -> {
            simpleFileContainer.insert(123);
@@ -127,6 +146,12 @@ class SimpleFileContainerTest {
         simpleFileContainer.insert(2048);
         simpleFileContainer.insert(4096);
         try {
+            assertEquals(utils.get(0L), 123);
+            assertEquals(utils.get(1L), 456);
+            assertEquals(utils.get(2L), 789);
+            assertEquals(utils.get(3L), 321);
+            assertEquals(utils.get(4L), 654);
+            assertEquals(utils.get(5L), 987);
             assertEquals(utils.get(6L), 1024);
             assertEquals(utils.get(7L), 2048);
             assertEquals(utils.get(8L), 4096);
@@ -181,6 +206,25 @@ class SimpleFileContainerTest {
         MetaData metaData = simpleFileContainer.getMetaData();
         assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
         assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString()), 78);
+
+        simpleFileContainer.close();
+    }
+
+    @Test
+    void testUpdateDeletedRecord() {
+        simpleFileContainer.open();
+
+        try {
+            utils.delete(3L);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        assertThrows(NoSuchElementException.class, () -> {
+            simpleFileContainer.update(3L, 1024);
+        });
+
+        simpleFileContainer.close();
     }
 
     @Test
@@ -223,5 +267,25 @@ class SimpleFileContainerTest {
         MetaData metaData = simpleFileContainer.getMetaData();
         assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
         assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString()), 78);
+
+        simpleFileContainer.close();
+    }
+
+    @Test
+    void testRemoveDeletedRecord() {
+        simpleFileContainer.open();
+
+        try {
+            utils.delete(3L);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        assertThrows(NoSuchElementException.class, () -> {
+            simpleFileContainer.remove(3L);
+        });
+
+        simpleFileContainer.close();
     }
 }
+

@@ -2,8 +2,6 @@ package util.records;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.util.NoSuchElementException;
 
 public class StocksBuffer extends RecordsBuffer {
 
@@ -17,29 +15,16 @@ public class StocksBuffer extends RecordsBuffer {
     }
 
     @Override
-    public void updateRecordAt(long recordStartIndex, ByteBuffer byteBuffer) {}
-
-    @Override
-    public void updateRecordNumbered(long recordNumber, ByteBuffer byteBuffer) {}
-
-    @Override
     public void deleteRecordAt(long recordStartIndex) {}
 
     @Override
-    public void deleteRecordNumbered(long recordNumber) {}
-
-    @Override
-    public int getSizeRecordAt(long recordStartIndex) throws NoSuchElementException, IOException {
-        if (recordStartIndex > getSize()) {
-            throw new NoSuchElementException();
-        }
-
+    public int getSizeRecordAt(long recordStartIndex) throws IOException {
         return idByteSize + getNameSizeRecordAt(recordStartIndex) + nameLengthByteSize
                 + timestampByteSize + marketValueByteSize;
     }
 
     @Override
-    public int getStartIndexRecordNumbered(long recordNumber) throws NoSuchElementException, IOException {
+    public int getStartIndexRecordNumbered(long recordNumber) throws IOException {
         int currentRecordStartIndex = 0;
         int currentRecordNameSize = getNameSizeRecordAt(currentRecordStartIndex);
         int fixedByteSize = idByteSize + nameLengthByteSize + timestampByteSize + marketValueByteSize;
@@ -49,15 +34,10 @@ public class StocksBuffer extends RecordsBuffer {
             currentRecordNameSize = getNameSizeRecordAt(currentRecordStartIndex);
         }
 
-        if (currentRecordStartIndex > getSize()) {
-            throw new NoSuchElementException();
-        }
-
         return currentRecordStartIndex;
     }
 
     private int getNameSizeRecordAt(long recordStartIndex) throws IOException {
         return getByteBuffer(recordStartIndex + idByteSize, nameLengthByteSize).getShort();
     }
-
 }

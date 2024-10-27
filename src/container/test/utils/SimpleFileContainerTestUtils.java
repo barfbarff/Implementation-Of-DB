@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.NoSuchElementException;
 
 public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
     private final RecordsBuffer recordsBuffer;
@@ -71,14 +72,21 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
 
     public V get(Long key) throws IOException{
         ByteBuffer byteBuffer = recordsBuffer.getRecordNumbered(key);
-        byteBuffer.get();
+
+        byte deletionFlag = byteBuffer.get();
+        if (deletionFlag == 1) {
+            throw new NoSuchElementException();
+        }
+
         keySerializer.deserialize(byteBuffer);
         return valueSerializer.deserialize(byteBuffer);
     }
 
-    public byte getDeletionFlag(Long key) throws IOException {
+    public void delete(Long key) throws IOException{
         ByteBuffer byteBuffer = recordsBuffer.getRecordNumbered(key);
-        return byteBuffer.get();
+        byteBuffer.put((byte) 1);
+        byteBuffer.flip();
+        recordsBuffer.updateRecordNumbered(key, byteBuffer);
     }
 
     public void destroy() {

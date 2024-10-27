@@ -3,7 +3,6 @@ package util.records;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.util.NoSuchElementException;
 
 public abstract class RecordsBuffer {
 
@@ -38,7 +37,7 @@ public abstract class RecordsBuffer {
         return ByteBuffer.wrap(byteArray);
     }
 
-    public int getSizeRecordNumbered(long recordNumber) throws NoSuchElementException, IOException{
+    public int getSizeRecordNumbered(long recordNumber) throws IOException{
         return getSizeRecordAt(getStartIndexRecordNumbered(recordNumber));
     }
 
@@ -46,9 +45,10 @@ public abstract class RecordsBuffer {
         return getByteBuffer(recordStartIndex, getSizeRecordAt(recordStartIndex));
     }
 
-    public ByteBuffer getRecordNumbered(long recordNumber) throws NoSuchElementException, IOException{
-        return getByteBuffer(getStartIndexRecordNumbered(recordNumber),
-                             getSizeRecordNumbered(recordNumber));
+    public ByteBuffer getRecordNumbered(long recordNumber) throws IOException{
+        int startIndex = getStartIndexRecordNumbered(recordNumber);
+        int recordSize = getSizeRecordAt(startIndex);
+        return getByteBuffer(startIndex, recordSize);
     }
 
     public void append(ByteBuffer byteBuffer) throws IOException {
@@ -56,15 +56,24 @@ public abstract class RecordsBuffer {
         file.write(byteBuffer.array());
     }
 
-    public abstract void updateRecordAt(long recordStartIndex, ByteBuffer byteBuffer) throws IOException;
+    public void updateRecordAt(long recordStartIndex, ByteBuffer byteBuffer) throws IOException {
+        file.seek(recordStartIndex);
+        file.write(byteBuffer.array());
+    }
 
-    public abstract void updateRecordNumbered(long recordNumber, ByteBuffer byteBuffer) throws NoSuchElementException, IOException;
+    public void updateRecordNumbered(long recordNumber, ByteBuffer byteBuffer) throws IOException {
+        int startIndex = getStartIndexRecordNumbered(recordNumber);
+        updateRecordAt(startIndex, byteBuffer);
+    }
 
     public abstract void deleteRecordAt(long recordStartIndex) throws IOException;
 
-    public abstract void deleteRecordNumbered(long recordNumber) throws NoSuchElementException, IOException;
+    public void deleteRecordNumbered(long recordNumber) throws IOException {
+        int startIndex = getStartIndexRecordNumbered(recordNumber);
+        deleteRecordAt(startIndex);
+    }
 
-    public abstract int getSizeRecordAt(long recordStartIndex) throws NoSuchElementException, IOException;
+    public abstract int getSizeRecordAt(long recordStartIndex) throws IOException;
 
-    public abstract int getStartIndexRecordNumbered(long recordNumber) throws NoSuchElementException, IOException;
+    public abstract int getStartIndexRecordNumbered(long recordNumber) throws IOException;
 }
