@@ -242,13 +242,13 @@ public class MapContainerTest {
         mapContainer.open();
 
         mapContainer.remove(2L);
+        deletedKeys.add(2L);
         assertEquals(hashMap.get(0L), 123);
         assertEquals(hashMap.get(1L), 456);
         assertNull(hashMap.get(2L));
         assertEquals(hashMap.get(3L), 321);
         assertEquals(hashMap.get(4L), 654);
         assertEquals(hashMap.get(5L), 987);
-
 
         MetaData metaData = mapContainer.getMetaData();
         assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
