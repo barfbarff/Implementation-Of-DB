@@ -1,5 +1,6 @@
 package stocks;
 
+import util.records.RecordsBuffer;
 import util.records.StocksBuffer;
 
 import java.io.FileNotFoundException;
@@ -11,7 +12,7 @@ import java.util.NoSuchElementException;
 
 public class Stocks implements Iterable<StockEntry> {
 
-    private final StocksBuffer stocksBuffer;
+    private final RecordsBuffer stocksBuffer;
 
     Stocks(String path) throws FileNotFoundException {
         RandomAccessFile file = new RandomAccessFile(path, "r");

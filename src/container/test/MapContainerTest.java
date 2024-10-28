@@ -1,5 +1,6 @@
 package container.test;
 
+import container.Container;
 import container.impl.MapContainer;
 import container.impl.MetaDataFields;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class MapContainerTest {
     // TODO: Replace testing using Reflection by using mocks with Mockito
 
-    static MapContainer<Integer> mapContainer = new MapContainer<>();
+    static Container<Long, Integer> mapContainer = new MapContainer<>();
     static Map<Long, Integer> hashMap;
     static Set<Long> deletedKeys;
 

@@ -6,6 +6,7 @@ import io.LongSerializer;
 import util.ContainerRuntimeException;
 import util.records.FixedSizeRecordsBuffer;
 import util.MetaData;
+import util.records.RecordsBuffer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,7 +17,7 @@ import java.util.NoSuchElementException;
 
 public class SimpleFileContainer<Value> implements Container<Long, Value> {
 
-	private FixedSizeRecordsBuffer recordsBuffer;
+	private RecordsBuffer recordsBuffer;
 
 	private boolean isOpen = false;
 

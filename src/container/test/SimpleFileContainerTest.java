@@ -1,5 +1,6 @@
 package container.test;
 
+import container.Container;
 import container.impl.MetaDataFields;
 import container.impl.SimpleFileContainer;
 import container.test.utils.SimpleFileContainerTestUtils;
@@ -17,7 +18,7 @@ class SimpleFileContainerTest {
     // TODO: Replace testing against real files by using mocks with Mockito
     // TODO: Implement integration tests to test the functions against real files
 
-    static SimpleFileContainer<Integer> simpleFileContainer;
+    static Container<Long, Integer> simpleFileContainer;
     static SimpleFileContainerTestUtils<IntSerializer, Integer> utils;
     static String fileNamePrefix = "test";
 

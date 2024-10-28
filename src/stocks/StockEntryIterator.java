@@ -1,6 +1,6 @@
 package stocks;
 
-import util.records.StocksBuffer;
+import util.records.RecordsBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -10,9 +10,9 @@ import java.util.NoSuchElementException;
 public class StockEntryIterator implements Iterator<StockEntry> {
 
     private long pos;
-    private final StocksBuffer stocksBuffer;
+    private final RecordsBuffer stocksBuffer;
 
-    public StockEntryIterator(StocksBuffer stocksBuffer) {
+    public StockEntryIterator(RecordsBuffer stocksBuffer) {
         this.stocksBuffer = stocksBuffer;
     }
 
