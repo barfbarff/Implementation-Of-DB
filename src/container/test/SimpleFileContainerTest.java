@@ -81,7 +81,7 @@ class SimpleFileContainerTest {
 
         MetaData metaData = simpleFileContainer.getMetaData();
         assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
-        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString()),78 );
+        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString()),78);
 
         simpleFileContainer.close();
     }

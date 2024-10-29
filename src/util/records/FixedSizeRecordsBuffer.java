@@ -3,18 +3,18 @@ package util.records;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class FixedSizeRecordsBuffer extends RecordsBuffer{
+public class FixedSizeRecordsBuffer extends RecordsBuffer {
 
-    private final int deletionFlagByteSize = 1;
     private final int fixedRecordSize;
 
     public FixedSizeRecordsBuffer(RandomAccessFile file, int keyByteSize, int valueByteSize) {
         super(file);
+        int deletionFlagByteSize = 1;
         this.fixedRecordSize = deletionFlagByteSize + keyByteSize + valueByteSize;
     }
 
     @Override
-    public void deleteRecordAt(long recordStartIndex) throws IOException{
+    public void deleteRecordAt(long recordStartIndex) throws IOException {
         file.seek(recordStartIndex);
         file.write((byte) 1);
     }

@@ -47,6 +47,7 @@ public class MapContainerTest {
         hashMap.put(3L, 321);
         hashMap.put(4L, 654);
         hashMap.put(5L, 987);
+
         mapContainer.open();
         MetaData metaData = mapContainer.getMetaData();
         metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), 5);

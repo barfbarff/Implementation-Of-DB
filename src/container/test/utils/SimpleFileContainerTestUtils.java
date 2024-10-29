@@ -74,7 +74,9 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
      * @throws IOException if an I/O error occurs while writing to the file.
      */
     public void append(Long key, V value) throws IOException {
-        int byteBufferSize = keySerializer.getSerializedSize() + valueSerializer.getSerializedSize() + 1;
+        int deletionFlagByteSize = 1;
+        int byteBufferSize = keySerializer.getSerializedSize() + valueSerializer.getSerializedSize() +
+                deletionFlagByteSize;
         ByteBuffer byteBuffer = ByteBuffer.allocate(byteBufferSize);
 
         byteBuffer.put((byte) 0);
@@ -101,7 +103,7 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
      * @throws NoSuchElementException if the record with the specified key does not
      * exist in the file.
      */
-    public V get(Long key) throws NoSuchElementException, IOException{
+    public V get(Long key) throws NoSuchElementException, IOException {
         ByteBuffer byteBuffer = dataBuffer.getRecordNumbered(key);
 
         byte deletionFlag = byteBuffer.get();
@@ -118,7 +120,7 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
      * @param key the unique identifier for the record.
      * @throws IOException if an I/O error occurs while writing to the file.
      */
-    public void delete(Long key) throws IOException{
+    public void delete(Long key) throws IOException {
         ByteBuffer byteBuffer = dataBuffer.getRecordNumbered(key);
         byteBuffer.put((byte) 1);
         byteBuffer.flip();

@@ -21,17 +21,16 @@ public abstract class RecordsBuffer {
      * Clears the content of the file associated with this buffer
      * @throws IOException if an I/O error occurs while setting the length of this file
      */
-    public void clear() throws IOException{
+    public void clear() throws IOException {
         file.setLength(0);
     }
-
 
     /**
      * Closes the file associated with this buffer, so that system resources that are linked
      * to this file can be released
      * @throws IOException if an I/O error occurs while closing the file
      */
-    public void close() throws IOException{
+    public void close() throws IOException {
         file.close();
     }
 
@@ -39,7 +38,6 @@ public abstract class RecordsBuffer {
      * Gets the length of the file associated with this buffer
      * @return Length of the file
      */
-
     public long getSize() {
         try {
             return file.length();
@@ -72,7 +70,7 @@ public abstract class RecordsBuffer {
      * @return the size of the ByteBuffer corresponding to the record.
      * @throws IOException if an I/O error occurs while reading from the file.
      */
-    public int getSizeRecordNumbered(long recordNumber) throws IOException{
+    public int getSizeRecordNumbered(long recordNumber) throws IOException {
         return getSizeRecordAt(getStartIndexRecordNumbered(recordNumber));
     }
 
@@ -94,7 +92,7 @@ public abstract class RecordsBuffer {
      * @return the ByteBuffer corresponding to the record.
      * @throws IOException if an I/O error occurs while reading from the file.
      */
-    public ByteBuffer getRecordNumbered(long recordNumber) throws IOException{
+    public ByteBuffer getRecordNumbered(long recordNumber) throws IOException {
         int startIndex = getStartIndexRecordNumbered(recordNumber);
         int recordSize = getSizeRecordAt(startIndex);
         return getByteBuffer(startIndex, recordSize);
@@ -109,7 +107,6 @@ public abstract class RecordsBuffer {
         file.seek(getSize());
         file.write(byteBuffer.array());
     }
-
 
     /**
      * Updates the record at the specified starting index in the file associated with

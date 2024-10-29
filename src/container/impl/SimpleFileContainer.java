@@ -39,7 +39,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 		this.metaData = new MetaData();
 		try {
 			metaData.readFrom(Path.of(pathToMetadataFile));
-		} catch(IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -60,7 +60,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			recordsBuffer = new FixedSizeRecordsBuffer(file, keySerializer.getSerializedSize(),
 					valueSerializer.getSerializedSize());
 			isOpen = true;
-		} catch(FileNotFoundException e){
+		} catch (FileNotFoundException e) {
 			throw new ContainerRuntimeException(e.getMessage(), e);
 		}
 	}
@@ -70,7 +70,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 		try {
 			recordsBuffer.close();
 			isOpen = false;
-		} catch(IOException e) {
+		} catch (IOException e) {
 			throw new ContainerRuntimeException(e.getMessage(), e);
 		}
 	}
@@ -86,7 +86,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 
 		try {
 			metaData.writeTo(Path.of(pathToMetadataFile));
-		} catch(IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
