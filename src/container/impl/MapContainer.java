@@ -3,19 +3,29 @@ package container.impl;
 import container.Container;
 import util.MetaData;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+
 
 public class MapContainer<Value> implements Container<Long, Value> {
 
 	private final MetaData metaData = new MetaData();
+
 	private final Map<Long, Value> hashMap = new HashMap<>();
 	private final Set<Long> deletedKeys = new HashSet<>();
+
+	private final String currentKeyField = MetaDataFields.CURRENT_KEY
+			.toString();
+
 	private boolean isOpen = false;
-	
+
 	public MapContainer() {
-		metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), 0L);
+		metaData.setLongProperty(currentKeyField, 0L);
 	}
-	
+
 	@Override
 	public MetaData getMetaData() {
 		if (!isOpen) {
@@ -24,7 +34,7 @@ public class MapContainer<Value> implements Container<Long, Value> {
 
 		return metaData;
 	}
-	
+
 	@Override
 	public void open() {
 		isOpen = true;
@@ -34,18 +44,17 @@ public class MapContainer<Value> implements Container<Long, Value> {
 	public void close() {
 		isOpen = false;
 	}
-	
+
 	@Override
 	public Long reserve() throws IllegalStateException {
 		if (!isOpen) {
 			throw new IllegalStateException();
 		}
 
-		long newKey = metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()) + 1;
-		metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), newKey);
+		long newKey = metaData.getLongProperty(currentKeyField) + 1;
+		metaData.setLongProperty(currentKeyField, newKey);
 		return newKey;
 	}
-	
 
 	@Override
 	public Value get(Long key) throws NoSuchElementException {
@@ -67,7 +76,7 @@ public class MapContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		Long currentKey = metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString());
+		Long currentKey = metaData.getLongProperty(currentKeyField);
 		if (key > currentKey || deletedKeys.contains(key)) {
 			throw new NoSuchElementException();
 		}

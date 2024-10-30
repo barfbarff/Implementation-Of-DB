@@ -9,25 +9,28 @@ public class StocksBuffer extends RecordsBuffer {
     private final int nameLengthByteSize = 2;
     private final int timestampByteSize = 8;
     private final int marketValueByteSize = 8;
+    private final int fixedByteSize;
 
     public StocksBuffer(RandomAccessFile file) {
         super(file);
+        this.fixedByteSize = idByteSize
+                             + nameLengthByteSize
+                             + timestampByteSize
+                             + marketValueByteSize;
     }
 
     @Override
-    public void deleteRecordAt(long recordStartIndex) {}
+    public void deleteRecordAt(long recordStartIndex) { }
 
     @Override
     public int getSizeRecordAt(long recordStartIndex) throws IOException {
-        return idByteSize + getNameSizeRecordAt(recordStartIndex) + nameLengthByteSize
-                + timestampByteSize + marketValueByteSize;
+        return getNameSizeRecordAt(recordStartIndex) + fixedByteSize;
     }
 
     @Override
     public int getStartIndexRecordNumbered(long recordNumber) throws IOException {
         int currentRecordStartIndex = 0;
         int currentRecordNameSize = getNameSizeRecordAt(currentRecordStartIndex);
-        int fixedByteSize = idByteSize + nameLengthByteSize + timestampByteSize + marketValueByteSize;
 
         for (int i = 1; i <= recordNumber; i++) {
             currentRecordStartIndex += fixedByteSize + currentRecordNameSize;
@@ -38,6 +41,7 @@ public class StocksBuffer extends RecordsBuffer {
     }
 
     private int getNameSizeRecordAt(long recordStartIndex) throws IOException {
-        return getByteBuffer(recordStartIndex + idByteSize, nameLengthByteSize).getShort();
+        long nameSizeStartIndex = recordStartIndex + idByteSize;
+        return getByteBuffer(nameSizeStartIndex, nameLengthByteSize).getShort();
     }
 }

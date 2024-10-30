@@ -28,19 +28,31 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
     private final LongSerializer keySerializer = new LongSerializer();
     private final T valueSerializer;
 
+    private final String currentKeyField = MetaDataFields.CURRENT_KEY
+            .toString();
+    private final String currentSizeField = MetaDataFields.CURRENT_SIZE
+            .toString();
+
     public SimpleFileContainerTestUtils(Path directory, T valueSerializer) {
-        String pathToDataFile = directory.resolve( "test_data.bin").toString();
-        pathToMetadataFile = Path.of(directory.resolve("test_meta.bin").toString());
+        String pathToDataFile = directory
+                .resolve("test_data.bin")
+                .toString();
+        pathToMetadataFile = Path.of(directory
+                .resolve("test_meta.bin")
+                .toString());
         RandomAccessFile dataFile = null;
 
         try {
-             dataFile = new RandomAccessFile(pathToDataFile, "rw");
+             dataFile = new RandomAccessFile(
+                     pathToDataFile, "rw");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
-        dataBuffer = new FixedSizeRecordsBuffer(dataFile, keySerializer.getSerializedSize(),
-                valueSerializer.getSerializedSize());
+        int keySize = keySerializer.getSerializedSize();
+        int valueSize = valueSerializer.getSerializedSize();
+        dataBuffer = new FixedSizeRecordsBuffer(dataFile,
+                keySize, valueSize);
 
         this.valueSerializer = valueSerializer;
     }
@@ -61,8 +73,8 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
      */
     public void initMetadataFile() throws IOException {
         MetaData metaData = new MetaData();
-        metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), -1);
-        metaData.setLongProperty(MetaDataFields.CURRENT_SIZE.toString(), 0);
+        metaData.setLongProperty(currentKeyField, -1);
+        metaData.setLongProperty(currentSizeField, 0);
         metaData.writeTo(pathToMetadataFile);
     }
 
@@ -75,8 +87,10 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
      */
     public void append(Long key, V value) throws IOException {
         int deletionFlagByteSize = 1;
-        int byteBufferSize = keySerializer.getSerializedSize() + valueSerializer.getSerializedSize() +
-                deletionFlagByteSize;
+        int byteBufferSize = keySerializer.getSerializedSize()
+                             + valueSerializer.getSerializedSize()
+                             + deletionFlagByteSize;
+
         ByteBuffer byteBuffer = ByteBuffer.allocate(byteBufferSize);
 
         byteBuffer.put((byte) 0);
@@ -86,10 +100,12 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
 
         MetaData metaData = new MetaData();
         metaData.readFrom(pathToMetadataFile);
-        long newKey = metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()) + 1;
-        long newSize = metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString()) + byteBufferSize;
-        metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), newKey);
-        metaData.setLongProperty(MetaDataFields.CURRENT_SIZE.toString(), newSize);
+        long newKey = metaData.getLongProperty(currentKeyField)
+                      + 1;
+        long newSize = metaData.getLongProperty(currentSizeField)
+                       + byteBufferSize;
+        metaData.setLongProperty(currentKeyField, newKey);
+        metaData.setLongProperty(currentSizeField, newSize);
 
         metaData.writeTo(pathToMetadataFile);
         dataBuffer.append(byteBuffer);
@@ -104,7 +120,8 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
      * exist in the file.
      */
     public V get(Long key) throws NoSuchElementException, IOException {
-        ByteBuffer byteBuffer = dataBuffer.getRecordNumbered(key);
+        ByteBuffer byteBuffer = dataBuffer
+                .getRecordNumbered(key);
 
         byte deletionFlag = byteBuffer.get();
         if (deletionFlag == 1) {
@@ -121,7 +138,8 @@ public class SimpleFileContainerTestUtils<T extends FixedSizeSerializer<V>, V> {
      * @throws IOException if an I/O error occurs while writing to the file.
      */
     public void delete(Long key) throws IOException {
-        ByteBuffer byteBuffer = dataBuffer.getRecordNumbered(key);
+        ByteBuffer byteBuffer = dataBuffer
+                .getRecordNumbered(key);
         byteBuffer.put((byte) 1);
         byteBuffer.flip();
         dataBuffer.updateRecordNumbered(key, byteBuffer);

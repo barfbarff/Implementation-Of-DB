@@ -5,11 +5,15 @@ import java.io.RandomAccessFile;
 
 public class FixedSizeRecordsBuffer extends RecordsBuffer {
 
+    private final int deletionFlagByteSize = 1;
+    private final int keyByteSize;
+    private final int valueByteSize;
     private final int fixedRecordSize;
 
     public FixedSizeRecordsBuffer(RandomAccessFile file, int keyByteSize, int valueByteSize) {
         super(file);
-        int deletionFlagByteSize = 1;
+        this.keyByteSize = keyByteSize;
+        this.valueByteSize = valueByteSize;
         this.fixedRecordSize = deletionFlagByteSize + keyByteSize + valueByteSize;
     }
 

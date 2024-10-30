@@ -27,11 +27,20 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 	private final LongSerializer keySerializer;
 	private final FixedSizeSerializer<Value> valueSerializer;
 
+	private final String currentKeyField = MetaDataFields.CURRENT_KEY
+			.toString();
+	private final String currentSizeField = MetaDataFields.CURRENT_SIZE
+			.toString();
+
 	private final MetaData metaData;
 
 	public SimpleFileContainer(Path directory, String filenamePrefix, FixedSizeSerializer<Value> serializer) {
-		this.pathToDataFile = directory.resolve(filenamePrefix + FilesPostfix.DATA).toString();
-		this.pathToMetadataFile = directory.resolve(filenamePrefix + FilesPostfix.METADATA).toString();
+		this.pathToDataFile = directory
+				.resolve(filenamePrefix + FilesPostfix.DATA)
+				.toString();
+		this.pathToMetadataFile = directory
+				.resolve(filenamePrefix + FilesPostfix.METADATA)
+				.toString();
 
 		this.keySerializer = new LongSerializer();
 		this.valueSerializer = serializer;
@@ -43,7 +52,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public MetaData getMetaData() {
 		if (!isOpen) {
@@ -56,9 +65,13 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 	@Override
 	public void open() {
 		try {
-			RandomAccessFile file = new RandomAccessFile(pathToDataFile, "rw");
-			recordsBuffer = new FixedSizeRecordsBuffer(file, keySerializer.getSerializedSize(),
-					valueSerializer.getSerializedSize());
+			RandomAccessFile file = new RandomAccessFile(
+					pathToDataFile, "rw");
+
+			int keySize = keySerializer.getSerializedSize();
+			int valueSize = valueSerializer.getSerializedSize();
+			recordsBuffer = new FixedSizeRecordsBuffer(file,
+					keySize, valueSize);
 			isOpen = true;
 		} catch (FileNotFoundException e) {
 			throw new ContainerRuntimeException(e.getMessage(), e);
@@ -74,15 +87,15 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			throw new ContainerRuntimeException(e.getMessage(), e);
 		}
 	}
-	
+
 	@Override
 	public Long reserve() throws IllegalStateException {
 		if (!isOpen) {
 			throw new IllegalStateException();
 		}
 
-		long newKey = metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()) + 1;
-		metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), newKey);
+		long newKey = metaData.getLongProperty(currentKeyField) + 1;
+		metaData.setLongProperty(currentKeyField, newKey);
 
 		try {
 			metaData.writeTo(Path.of(pathToMetadataFile));
@@ -92,22 +105,25 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 
 		return newKey;
 	}
-	
+
 	@Override
 	public void update(Long key, Value value) throws NoSuchElementException {
 		if (!isOpen) {
 			throw new IllegalStateException();
 		}
 
-		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
+		if (key > metaData.getLongProperty(currentKeyField)) {
 			throw new NoSuchElementException();
 		}
 
 		try {
-			int startIndex = recordsBuffer.getStartIndexRecordNumbered(key);
-			int recordSize = recordsBuffer.getSizeRecordAt(key);
+			int startIndex = recordsBuffer
+					.getStartIndexRecordNumbered(key);
+			int recordSize = recordsBuffer
+					.getSizeRecordAt(key);
 
-			ByteBuffer byteBuffer = recordsBuffer.getByteBuffer(startIndex, recordSize);
+			ByteBuffer byteBuffer = recordsBuffer
+					.getByteBuffer(startIndex, recordSize);
 			byte deletionFlag = byteBuffer.get();
 			if (deletionFlag == 1) {
 				throw new NoSuchElementException();
@@ -123,10 +139,13 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			recordsBuffer.updateRecordNumbered(key, byteBuffer);
 
 			int endIndex = startIndex + recordSize;
-			long currentFileSize = metaData.getLongProperty(MetaDataFields.CURRENT_SIZE.toString());
+			long currentFileSize = metaData
+					.getLongProperty(currentSizeField);
 			if (endIndex > currentFileSize) {
-				long newSize = currentFileSize + byteBuffer.limit() + 1;
-				metaData.setLongProperty(MetaDataFields.CURRENT_SIZE.toString(), newSize);
+				long newSize = currentFileSize
+						       + byteBuffer.limit()
+						       + 1;
+				metaData.setLongProperty(currentSizeField, newSize);
 				metaData.writeTo(Path.of(pathToMetadataFile));
 			}
 		} catch (IOException e) {
@@ -141,13 +160,14 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
+		if (key > metaData.getLongProperty(currentKeyField)) {
 			throw new NoSuchElementException();
 		}
 
 		Value value = null;
 		try {
-			ByteBuffer byteBuffer = recordsBuffer.getRecordNumbered(key);
+			ByteBuffer byteBuffer = recordsBuffer
+					.getRecordNumbered(key);
 
 			byte deletionFlag = byteBuffer.get();
 			if (deletionFlag == 1) {
@@ -159,7 +179,7 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 		} catch (IOException e) {
             e.printStackTrace();
         }
-		
+
 		return value;
     }
 
@@ -169,14 +189,16 @@ public class SimpleFileContainer<Value> implements Container<Long, Value> {
 			throw new IllegalStateException();
 		}
 
-		if (key > metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString())) {
+		if (key > metaData.getLongProperty(currentKeyField)) {
 			throw new NoSuchElementException();
 		}
 
 		try {
-			int startIndex = recordsBuffer.getStartIndexRecordNumbered(key);
+			int startIndex = recordsBuffer
+					.getStartIndexRecordNumbered(key);
 
-			ByteBuffer byteBuffer = recordsBuffer.getRecordAt(startIndex);
+			ByteBuffer byteBuffer = recordsBuffer
+					.getRecordAt(startIndex);
 			byte deletionFlag = byteBuffer.get();
 			if (deletionFlag == 1) {
 				throw new NoSuchElementException();

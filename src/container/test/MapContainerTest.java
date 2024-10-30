@@ -21,17 +21,27 @@ public class MapContainerTest {
     static Container<Long, Integer> mapContainer = new MapContainer<>();
     static Map<Long, Integer> hashMap;
     static Set<Long> deletedKeys;
+    static String currentKeyField = MetaDataFields.CURRENT_KEY
+            .toString();
 
     @BeforeAll
     @SuppressWarnings("unchecked")
     static void setUp() {
         try {
-            Field hashMapField = mapContainer.getClass().getDeclaredField("hashMap");
-            Field deletedKeysField = mapContainer.getClass().getDeclaredField("deletedKeys");
+            Field hashMapField = mapContainer
+                    .getClass()
+                    .getDeclaredField("hashMap");
+            Field deletedKeysField = mapContainer
+                    .getClass()
+                    .getDeclaredField("deletedKeys");
+
             hashMapField.setAccessible(true);
             deletedKeysField.setAccessible(true);
-            hashMap = (Map<Long, Integer>) hashMapField.get(mapContainer);
-            deletedKeys = (Set<Long>) deletedKeysField.get(mapContainer);
+
+            hashMap = (Map<Long, Integer>) hashMapField
+                    .get(mapContainer);
+            deletedKeys = (Set<Long>) deletedKeysField
+                    .get(mapContainer);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
         }
@@ -50,7 +60,7 @@ public class MapContainerTest {
 
         mapContainer.open();
         MetaData metaData = mapContainer.getMetaData();
-        metaData.setLongProperty(MetaDataFields.CURRENT_KEY.toString(), 5);
+        metaData.setLongProperty(currentKeyField, 5L);
         mapContainer.close();
     }
 
@@ -69,7 +79,7 @@ public class MapContainerTest {
         long newKey = mapContainer.reserve();
         assertEquals(newKey, 6L);
         MetaData metaData = mapContainer.getMetaData();
-        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 6L);
+        assertEquals(metaData.getLongProperty(currentKeyField), 6L);
 
         mapContainer.close();
     }
@@ -86,7 +96,7 @@ public class MapContainerTest {
         mapContainer.open();
 
         MetaData metaData = mapContainer.getMetaData();
-        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
+        assertEquals(metaData.getLongProperty(currentKeyField), 5L);
 
         mapContainer.close();
     }
@@ -121,7 +131,7 @@ public class MapContainerTest {
         assertEquals(mapContainer.get(5L), 987);
 
         MetaData metaData = mapContainer.getMetaData();
-        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
+        assertEquals(metaData.getLongProperty(currentKeyField), 5L);
 
         mapContainer.close();
     }
@@ -164,7 +174,7 @@ public class MapContainerTest {
         assertEquals(hashMap.get(8L), 4096);
 
         MetaData metaData = mapContainer.getMetaData();
-        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 8);
+        assertEquals(metaData.getLongProperty(currentKeyField), 8L);
 
         mapContainer.close();
     }
@@ -203,7 +213,7 @@ public class MapContainerTest {
         assertEquals(hashMap.get(5L), 987);
 
         MetaData metaData = mapContainer.getMetaData();
-        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
+        assertEquals(metaData.getLongProperty(currentKeyField), 5L);
 
         mapContainer.close();
     }
@@ -253,7 +263,7 @@ public class MapContainerTest {
         assertEquals(hashMap.get(5L), 987);
 
         MetaData metaData = mapContainer.getMetaData();
-        assertEquals(metaData.getLongProperty(MetaDataFields.CURRENT_KEY.toString()), 5);
+        assertEquals(metaData.getLongProperty(currentKeyField), 5L);
 
         mapContainer.close();
     }
