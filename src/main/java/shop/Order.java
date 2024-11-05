@@ -2,6 +2,7 @@ package shop;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 public class Order implements Serializable {
 
@@ -32,5 +33,25 @@ public class Order implements Serializable {
 
     public List<Product> getItems() {
         return items;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+
+        Order order = (Order) obj;
+        return orderId == order.orderId
+                && Objects.equals(shippingAddress, order.shippingAddress);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(orderId, shippingAddress);
     }
 }

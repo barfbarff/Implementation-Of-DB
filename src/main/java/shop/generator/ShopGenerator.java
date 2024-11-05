@@ -5,6 +5,7 @@ import shop.Order;
 import shop.Product;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -26,11 +27,27 @@ public class ShopGenerator {
 
     public static List<Order> generateOrders(List<Product> products, int numOrders) {
         List<Order> orderList = new ArrayList<>();
+        List<Integer> productIndexes = new ArrayList<>();
+
+        for (int i = 0; i < products.size(); i++) {
+            productIndexes.add(i);
+        }
 
         for (int i = 0; i < numOrders; i++) {
             int randomId = random.nextInt(Integer.MAX_VALUE) + 1;
             String randomAddress = generateRandomString(10);
-            orderList.add(new Order(randomId, randomAddress, products));
+
+            List<Product> randomProducts = new ArrayList<>();
+
+            int numProducts = random.nextInt(products.size()) + 1;
+            Collections.shuffle(productIndexes);
+            List<Integer> randProdIndexes = productIndexes.subList(0, numProducts);
+
+            for (Integer index : randProdIndexes) {
+                randomProducts.add(products.get(index));
+            }
+
+            orderList.add(new Order(randomId, randomAddress, randomProducts));
         }
 
         return orderList;
@@ -61,5 +78,4 @@ public class ShopGenerator {
         }
         return stringBuilder.toString();
     }
-
 }

@@ -2,6 +2,7 @@ package shop;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Customer implements java.io.Serializable {
 
@@ -41,5 +42,26 @@ public class Customer implements java.io.Serializable {
 
     public void addOrder(Order order){
         orders.add(order);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+
+        Customer customer = (Customer) obj;
+        return Objects.equals(customerId, customer.customerId)
+                && Objects.equals(userName, customer.userName)
+                && Objects.equals(address, customer.address);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(customerId, userName, address);
     }
 }
