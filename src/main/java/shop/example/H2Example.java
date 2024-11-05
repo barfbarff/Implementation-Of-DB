@@ -7,7 +7,7 @@ import java.sql.*;
 public class H2Example {
 
     private static final String DB_DRIVER = "org.h2.Driver";
-    private static final String DB_CONNECTION = "jdbc:h2:./h2Example";
+    private static final String DB_CONNECTION = "jdbc:h2:./data/shop/H2Example/h2Example";
     private static final String DB_USER = "";
     private static final String DB_PASSWORD = "";
 
@@ -80,7 +80,7 @@ public class H2Example {
 
     private static void cleanUp(){
         //Deletes all files of Database "h2Example" in directory ".". Good for testing!
-        DeleteDbFiles.execute(".", "h2Example", true);
+        DeleteDbFiles.execute("./data/shop/H2Example", "h2Example", true);
     }
 
     private static Connection getDBConnection() {
