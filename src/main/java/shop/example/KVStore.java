@@ -9,6 +9,8 @@ public class KVStore {
         CustomerDatabase customerDatabase = new CustomerDatabase(3, 3, 3);
         KVStoreImpl kvStore = new KVStoreImpl();
 
+        kvStore.cleanUp();
+
         kvStore.open();
 
         for (Customer customer : customerDatabase.getCustomersList()) {
@@ -19,9 +21,6 @@ public class KVStore {
 
         kvStore.queryTopProduct();
 
-        kvStore.cleanUp();
-
         kvStore.close();
-
     }
 }

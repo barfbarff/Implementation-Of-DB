@@ -6,6 +6,7 @@ import jdbm.RecordManagerFactory;
 import shop.Customer;
 import shop.Order;
 import shop.Product;
+import shop.utils.Printer;
 import shop.utils.StringGenerator;
 
 import java.io.IOException;
@@ -82,21 +83,7 @@ public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
         }
 
         for (Customer customer : customerMap.values()) {
-            String customerStr =
-                    StringGenerator.genString(0, customer);
-            System.out.println(customerStr);
-
-            for (Order order : customer.getOrders()) {
-                String orderStr =
-                        StringGenerator.genString(1, order);
-                System.out.println(orderStr);
-
-                for (Product product : order.getItems()) {
-                    String productStr =
-                            StringGenerator.genString(2, product);
-                    System.out.println(productStr);
-                }
-            }
+            Printer.print(0, customer);
         }
     }
 
