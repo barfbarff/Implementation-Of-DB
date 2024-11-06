@@ -22,4 +22,15 @@ public class Printer {
             }
         }
     }
+
+    public static void printTitle(String title) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("~".repeat(10));
+        stringBuilder.append(" ");
+        stringBuilder.append(title);
+        stringBuilder.append(" ");
+        stringBuilder.append("~".repeat(10));
+
+        System.out.println(stringBuilder);
+    }
 }
