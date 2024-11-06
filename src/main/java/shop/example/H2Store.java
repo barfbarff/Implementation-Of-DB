@@ -25,6 +25,8 @@ public class H2Store {
             h2Store.insertCustomer(customer);
         }
 
+        h2Store.commit();
+
         Printer.printTitle("Query From The DB");
 
         h2Store.queryAllUsers();

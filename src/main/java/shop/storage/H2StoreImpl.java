@@ -61,8 +61,6 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
             for (Order order : customer.getOrders()) {
                 insertOrder(order, customer.getCustomerId());
             }
-
-            connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -144,7 +142,7 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
         }
     }
 
-    private List<Order> queryOrdersByUser(int customerId) {
+    private static List<Order> queryOrdersByUser(int customerId) {
         List<Order> orderList = new ArrayList<>();
 
         String selectQuery =
@@ -168,7 +166,7 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
         return orderList;
     }
 
-    private List<Product> queryProductsByOrder(int orderId) {
+    private static List<Product> queryProductsByOrder(int orderId) {
         List<Integer> productIdList = new ArrayList<>();
         List<Product> productList = new ArrayList<>();
 
@@ -269,5 +267,14 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
 
         insertStatement.executeUpdate();
         insertStatement.close();
+    }
+
+    @Override
+    public void commit() {
+        try {
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -24,6 +24,8 @@ public class KVStore {
             kvStore.insertCustomer(customer);
         }
 
+        kvStore.commit();
+
         Printer.printTitle("Query From The DB");
 
         kvStore.queryAllUsers();

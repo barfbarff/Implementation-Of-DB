@@ -43,12 +43,6 @@ public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
         }
 
         customerMap.put(customer.getCustomerId(), customer);
-
-        try {
-            recordManager.commit();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -118,5 +112,14 @@ public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
                     StringGenerator.genString(0, entry.getKey());
             System.out.println(productStr + " is the best selling product");
         });
+    }
+
+    @Override
+    public void commit() {
+        try {
+            recordManager.commit();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

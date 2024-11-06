@@ -11,7 +11,7 @@ public class KVExample {
     public static void main(String[] args) {
         try {
             //Create Records
-            RecordManager recordManager = RecordManagerFactory.createRecordManager("./customerKVDB");
+            RecordManager recordManager = RecordManagerFactory.createRecordManager("./data/shop/KVExample/customerKVDB");
             String recordName = "exampleRecord";
 
             //Create HashMap

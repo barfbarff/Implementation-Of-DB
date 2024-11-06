@@ -26,4 +26,9 @@ public interface CustomerStore {
      * Deletes any files associated with the database, leaving no trace of it ever existing.
      */
     void cleanUp();
+
+    /**
+     * Should ask the TA whether modifying this interface is allowed
+     */
+    void commit();
 }
