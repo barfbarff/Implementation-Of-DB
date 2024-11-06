@@ -3,11 +3,18 @@ package shop.example;
 import shop.Customer;
 import shop.generator.CustomerDatabase;
 import shop.storage.H2StoreImpl;
-import shop.storage.KVStoreImpl;
+import shop.utils.Printer;
 
 public class H2Store {
     public static void main(String[] args) {
         CustomerDatabase customerDatabase = new CustomerDatabase(3, 3, 3);
+
+        Printer.printTitle("Generated Data");
+
+        for (Customer customer : customerDatabase.getCustomersList()) {
+            Printer.print(0, customer);
+        }
+
         H2StoreImpl h2Store = new H2StoreImpl();
 
         h2Store.cleanUp();
@@ -17,6 +24,8 @@ public class H2Store {
         for (Customer customer : customerDatabase.getCustomersList()) {
             h2Store.insertCustomer(customer);
         }
+
+        Printer.printTitle("Query From The DB");
 
         h2Store.queryAllUsers();
 

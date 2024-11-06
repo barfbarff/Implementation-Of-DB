@@ -5,6 +5,7 @@ import shop.Customer;
 import shop.Order;
 import shop.Product;
 import shop.utils.Printer;
+import shop.utils.StringGenerator;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
         }
     }
 
-    private void insertOrder(Order order, int customerId) throws SQLException{
+    private void insertOrder(Order order, int customerId) throws SQLException {
         String insertOrder =
                 "INSERT INTO ORDERS" + "(oid, customerId, shippingAddress) values" + "(?,?,?)";
 
@@ -80,7 +81,7 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
         }
     }
 
-    private void insertProduct(Product product) throws SQLException{
+    private void insertProduct(Product product) throws SQLException {
         String insertProduct =
                 "MERGE INTO PRODUCTS" + "(pid, pname) values" + "(?,?)";
 
@@ -88,7 +89,7 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
                 product.getProductId(), product.getName());
     }
 
-    private void insertOrderItem(int orderId, int productId) throws SQLException{
+    private void insertOrderItem(int orderId, int productId) throws SQLException {
         String insertOrderItem =
                 "INSERT INTO ORDERITEMS" + "(orderId, productId) values" + "(?,?)";
 
@@ -117,21 +118,23 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
         String selectQuery =
                 "SELECT * FROM CUSTOMERS";
 
-        try (ResultSet resultSet = executeSelectQuery(selectQuery)){
-            while(resultSet.next()) {
-                int customerId = resultSet.getInt("id");
-                String userName = resultSet.getString("name");
-                String address = "";
+        try {
+            executeSelectQuery(selectQuery, rs -> {
+                while(rs.next()) {
+                    int customerId = rs.getInt("id");
+                    String userName = rs.getString("name");
+                    String address = "";
 
-                Customer customer = new Customer(customerId, userName, address);
+                    Customer customer = new Customer(customerId, userName, address);
 
-                List<Order> orderList = queryOrdersByUser(customerId);
-                for (Order order : orderList) {
-                    customer.addOrder(order);
+                    List<Order> orderList = queryOrdersByUser(customerId);
+                    for (Order order : orderList) {
+                        customer.addOrder(order);
+                    }
+
+                    customerList.add(customer);
                 }
-
-                customerList.add(customer);
-            }
+            });
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -147,15 +150,17 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
         String selectQuery =
                 "SELECT * FROM ORDERS WHERE customerId = ?";
 
-        try (ResultSet resultSet = executeSelectQuery(selectQuery, customerId)) {
-            while(resultSet.next()) {
-                int orderId = resultSet.getInt("oid");
-                String shippingAddress = resultSet.getString("shippingAddress");
-                List<Product> productList = queryProductsByOrder(orderId);
+        try {
+            executeSelectQuery(selectQuery, rs -> {
+                while(rs.next()) {
+                    int orderId = rs.getInt("oid");
+                    String shippingAddress = rs.getString("shippingAddress");
+                    List<Product> productList = queryProductsByOrder(orderId);
 
-                Order order = new Order(orderId, shippingAddress, productList);
-                orderList.add(order);
-            }
+                    Order order = new Order(orderId, shippingAddress, productList);
+                    orderList.add(order);
+                }
+            }, customerId);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -170,11 +175,13 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
         String selectOrderItemQuery =
                 "SELECT * FROM ORDERITEMS WHERE orderId = ?";
 
-        try (ResultSet resultSet = executeSelectQuery(selectOrderItemQuery, orderId)) {
-            while(resultSet.next()) {
-                int productId = resultSet.getInt("productId");
-                productIdList.add(productId);
-            }
+        try {
+            executeSelectQuery(selectOrderItemQuery, rs -> {
+                while(rs.next()) {
+                    int productId = rs.getInt("productId");
+                    productIdList.add(productId);
+                }
+            }, orderId);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -183,11 +190,13 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
                 "SELECT * FROM PRODUCTS WHERE pid = ?";
 
         for (Integer productId : productIdList) {
-            try (ResultSet resultSet = executeSelectQuery(selectProductQuery, productId)) {
-                while(resultSet.next()) {
-                    String productName = resultSet.getString("pname");
-                    productList.add(new Product(productId, productName));
-                }
+            try {
+                executeSelectQuery(selectProductQuery, rs -> {
+                    while(rs.next()) {
+                        String productName = rs.getString("pname");
+                        productList.add(new Product(productId, productName));
+                    }
+                }, productId);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -198,6 +207,31 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
 
     @Override
     public void queryTopProduct() {
+        String selectQuery =
+                "SELECT pid, pname FROM PRODUCTS"
+                + " JOIN ("
+                + " SELECT productId FROM ORDERITEMS"
+                + " GROUP BY productId"
+                + " ORDER BY COUNT(*) DESC"
+                + " LIMIT 1"
+                + " ) AS productIdFrequency"
+                + " ON PRODUCTS.pid = productIdFrequency.productId";
+
+        try {
+            executeSelectQuery(selectQuery, rs -> {
+                while(rs.next()) {
+                    int productId = rs.getInt("pid");
+                    String productName = rs.getString("pname");
+                    Product product = new Product(productId, productName);
+
+                    String productString =
+                            StringGenerator.genString(0, product);
+                    System.out.println(productString + " is the best selling product");
+                }
+            });
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void createTable(String createQuery) throws SQLException {
@@ -207,21 +241,23 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
     }
 
     @FunctionalInterface interface SQLConsumer<T> {
-        public void accept(T t) throws SQLException;
+        void accept(T t) throws SQLException;
     }
 
-    private static ResultSet executeSelectQuery(String selectQuery, Object... arguments) throws SQLException {
+    private static void executeSelectQuery(String selectQuery,
+                                           SQLConsumer<? super ResultSet> action,
+                                           Object... arguments) throws SQLException {
         PreparedStatement selectStatement = connection.prepareStatement(selectQuery);
 
         for (int i = 0; i < arguments.length; i++) {
             selectStatement.setObject(i + 1, arguments[i]);
         }
 
-        ResultSet resultSet = selectStatement.executeQuery();
+        ResultSet rs = selectStatement.executeQuery();
 
-//        selectStatement.close();
+        action.accept(rs);
 
-        return resultSet;
+        selectStatement.close();
     }
 
     private static void executeInsertQuery(String insertQuery, Object... arguments) throws SQLException {
