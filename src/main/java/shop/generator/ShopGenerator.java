@@ -3,6 +3,7 @@ package shop.generator;
 import shop.Customer;
 import shop.Order;
 import shop.Product;
+import shop.utils.RandomIdGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,12 +13,18 @@ import java.util.Random;
 // TODO: Task 2.2 a)
 public class ShopGenerator {
     private final static Random random = new Random();
+    private final static RandomIdGenerator productIdGenerator =
+            new RandomIdGenerator();
+    private final static RandomIdGenerator orderIdGenerator =
+            new RandomIdGenerator();
+    private final static RandomIdGenerator customerIdGenerator =
+            new RandomIdGenerator();
 
     public static List<Product> generateProducts(int numProducts) {
         List<Product> productList = new ArrayList<>();
 
         for (int i = 0; i < numProducts; i++) {
-            int randomId = random.nextInt(Integer.MAX_VALUE) + 1;
+            int randomId = productIdGenerator.generate();
             String randomName = generateRandomString(10);
             productList.add(new Product(randomId, randomName));
         }
@@ -34,7 +41,7 @@ public class ShopGenerator {
         }
 
         for (int i = 0; i < numOrders; i++) {
-            int randomId = random.nextInt(Integer.MAX_VALUE) + 1;
+            int randomId = orderIdGenerator.generate();
             String randomAddress = generateRandomString(10);
 
             List<Product> randomProducts = new ArrayList<>();
@@ -57,7 +64,7 @@ public class ShopGenerator {
         int randNumOrders = random.nextInt(maxOrders) + 1;
         List<Order> orderList = generateOrders(products, randNumOrders);
 
-        int randomId = random.nextInt(Integer.MAX_VALUE) + 1;
+        int randomId = customerIdGenerator.generate();
         String randomName = generateRandomString(10);
         String randomAddress = generateRandomString(10);
 
