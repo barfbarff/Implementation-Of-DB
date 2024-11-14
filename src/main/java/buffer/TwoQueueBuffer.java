@@ -36,7 +36,6 @@ public class TwoQueueBuffer extends PageFaultRateBuffer {
 
             (slot = slots.get(size())).insert(c);
             if (a1out.contains(c)) {
-                a1out.remove(c);
                 am.add(slot);
             } else {
                 a1in.add(slot);
