@@ -10,7 +10,7 @@ public class SimpleTwoQueueBuffer extends PageFaultRateBuffer {
 
     public SimpleTwoQueueBuffer(int capacity) {
         super(capacity);
-        this.kin = capacity > 3 ? capacity / 4 : 1;
+        this.kin = capacity >= 4 ? capacity / 4 : 1;
     }
 
     @Override
@@ -32,12 +32,6 @@ public class SimpleTwoQueueBuffer extends PageFaultRateBuffer {
             }
 
             (slot = slots.get(size())).insert(c);
-
-//            if (a1.size() > kin) {
-//                Slot swappedOutSlot = a1.poll();
-//                swappedOutSlot.remove();
-//            }
-
             a1.add(slot);
         } else {
             if (a1.contains(slot)) {
