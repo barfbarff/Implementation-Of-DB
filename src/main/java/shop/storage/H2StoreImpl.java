@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// TODO: Task 2.2 c)
 public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
 
     private static final String DB_DRIVER = "org.h2.Driver";
@@ -23,6 +22,8 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
 
     private static Connection connection;
 
+    private boolean isOpen = false;
+
     @Override
     public void open() {
         try {
@@ -30,7 +31,9 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
             connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
             createTables();
         } catch (ClassNotFoundException | SQLException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            isOpen = true;
         }
     }
 
@@ -54,6 +57,8 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
 
     @Override
     public void insertCustomer(Customer customer) {
+        ensureConnection();
+
         String insertCustomer =
                 "INSERT INTO CUSTOMERS" + "(id, name) values" + "(?,?)";
         try {
@@ -105,6 +110,8 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
             connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            isOpen = false;
         }
     }
 
@@ -115,6 +122,8 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
 
     @Override
     public void queryAllUsers() {
+        ensureConnection();
+
         List<Customer> customerList = new ArrayList<>();
 
         String selectQuery =
@@ -171,7 +180,7 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
     }
 
     private static List<Product> queryProductsByOrder(int orderId) {
-        List<Integer> productIdList = new ArrayList<>();
+        List<String> productIdList = new ArrayList<>();
         List<Product> productList = new ArrayList<>();
 
         String selectOrderItemQuery =
@@ -181,7 +190,7 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
             executeSelectQuery(selectOrderItemQuery, rs -> {
                 while(rs.next()) {
                     int productId = rs.getInt("productId");
-                    productIdList.add(productId);
+                    productIdList.add(Integer.toString(productId));
                 }
             }, orderId);
         } catch (SQLException e) {
@@ -189,19 +198,20 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
         }
 
         String selectProductQuery =
-                "SELECT * FROM PRODUCTS WHERE pid = ?";
+                "SELECT * FROM PRODUCTS WHERE pid IN ("
+                + String.join(",", productIdList)
+                + ")";
 
-        for (Integer productId : productIdList) {
-            try {
-                executeSelectQuery(selectProductQuery, rs -> {
-                    while(rs.next()) {
-                        String productName = rs.getString("pname");
-                        productList.add(new Product(productId, productName));
-                    }
-                }, productId);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        try {
+            executeSelectQuery(selectProductQuery, rs -> {
+                while(rs.next()) {
+                    int productId = rs.getInt("pid");
+                    String productName = rs.getString("pname");
+                    productList.add(new Product(productId, productName));
+                }
+            });
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return productList;
@@ -209,6 +219,8 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
 
     @Override
     public void queryTopProduct() {
+        ensureConnection();
+
         String selectQuery =
                 "SELECT pid, pname, count FROM PRODUCTS"
                 + " JOIN ("
@@ -276,5 +288,11 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
 
         insertStatement.executeUpdate();
         insertStatement.close();
+    }
+
+    private void ensureConnection() {
+        if (!isOpen) {
+            throw new IllegalStateException("The connection to the DB is closed");
+        }
     }
 }

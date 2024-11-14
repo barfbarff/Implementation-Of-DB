@@ -13,6 +13,8 @@ public class KVStore {
 
         kvStore.open();
 
+        kvStore.cleanUp();
+
         for (Customer customer : customerDatabase.getCustomersList()) {
             kvStore.insertCustomer(customer);
         }
@@ -24,8 +26,6 @@ public class KVStore {
         Printer.printTitle("Query Top Product");
 
         kvStore.queryTopProduct();
-
-        kvStore.cleanUp();
 
         kvStore.close();
     }

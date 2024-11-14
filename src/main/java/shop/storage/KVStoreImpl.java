@@ -37,9 +37,7 @@ public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
 
     @Override
     public void insertCustomer(Customer customer) {
-        if (!isOpen) {
-            throw new IllegalStateException("The connection to the DB is closed.");
-        }
+        ensureConnection();
 
         customerMap.put(customer.getCustomerId(), customer);
 
@@ -63,9 +61,7 @@ public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
 
     @Override
     public void cleanUp() {
-        if (!isOpen) {
-            throw new IllegalStateException("The connection to the DB is closed");
-        }
+        ensureConnection();
 
         try {
             customerMap.clear();
@@ -76,10 +72,9 @@ public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
     }
 
     @Override
+
     public void queryAllUsers() {
-        if (!isOpen) {
-            throw new IllegalStateException("The connection to the DB is closed");
-        }
+        ensureConnection();
 
         for (Customer customer : customerMap.values()) {
             Printer.printCustomer(0, customer);
@@ -88,9 +83,7 @@ public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
 
     @Override
     public void queryTopProduct() {
-        if (!isOpen) {
-            throw new IllegalStateException("The connection to the DB is closed");
-        }
+        ensureConnection();
 
         Map<Product, Integer> productSalesMap = new HashMap<>();
 
@@ -111,5 +104,11 @@ public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
                 .getTopProducts(productSalesMap);
 
         Printer.printTopProducts(topProducts.getKey(), topProducts.getValue());
+    }
+
+    private void ensureConnection() {
+        if (!isOpen) {
+            throw new IllegalStateException("The connection to the DB is closed");
+        }
     }
 }
