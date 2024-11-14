@@ -18,6 +18,8 @@ public class StorePerformanceTest {
         List<Customer> customerList = customerDatabase.getCustomersList();
 
         testKVStoreImpl(customerList);
+
+        testH2StoreImpl(customerList);
     }
 
     private static void testKVStoreImpl (List<Customer> customerList) {
