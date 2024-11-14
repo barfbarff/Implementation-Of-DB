@@ -9,14 +9,7 @@ public class KVStore {
     public static void main(String[] args) {
         CustomerDatabase customerDatabase = new CustomerDatabase(3, 3, 3);
 
-        Printer.printTitle("Generated Data");
-
-        for (Customer customer : customerDatabase.getCustomersList()) {
-            Printer.print(0, customer);
-        }
-
         KVStoreImpl kvStore = new KVStoreImpl();
-
 
         kvStore.open();
 
@@ -24,11 +17,11 @@ public class KVStore {
             kvStore.insertCustomer(customer);
         }
 
-        kvStore.commit();
-
         Printer.printTitle("Query From The DB");
 
         kvStore.queryAllUsers();
+
+        Printer.printTitle("Query Top Product");
 
         kvStore.queryTopProduct();
 

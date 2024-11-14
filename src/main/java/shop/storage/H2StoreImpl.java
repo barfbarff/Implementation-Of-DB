@@ -5,11 +5,13 @@ import shop.Customer;
 import shop.Order;
 import shop.Product;
 import shop.utils.Printer;
-import shop.utils.StringGenerator;
+import shop.utils.StoreFilter;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // TODO: Task 2.2 c)
 public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
@@ -61,6 +63,8 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
             for (Order order : customer.getOrders()) {
                 insertOrder(order, customer.getCustomerId());
             }
+
+            connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -138,7 +142,7 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
         }
 
         for (Customer customer : customerList) {
-            Printer.print(0, customer);
+            Printer.printCustomer(0, customer);
         }
     }
 
@@ -206,14 +210,14 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
     @Override
     public void queryTopProduct() {
         String selectQuery =
-                "SELECT pid, pname FROM PRODUCTS"
+                "SELECT pid, pname, count FROM PRODUCTS"
                 + " JOIN ("
-                + " SELECT productId FROM ORDERITEMS"
+                + " SELECT productId, COUNT(*) as count FROM ORDERITEMS"
                 + " GROUP BY productId"
-                + " ORDER BY COUNT(*) DESC"
-                + " LIMIT 1"
-                + " ) AS productIdFrequency"
-                + " ON PRODUCTS.pid = productIdFrequency.productId";
+                + " ) AS OCCURRENCES"
+                + " ON PRODUCTS.pid = OCCURRENCES.productId";
+
+        Map<Product, Integer> productSalesMap = new HashMap<>();
 
         try {
             executeSelectQuery(selectQuery, rs -> {
@@ -222,14 +226,19 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
                     String productName = rs.getString("pname");
                     Product product = new Product(productId, productName);
 
-                    String productString =
-                            StringGenerator.genString(0, product);
-                    System.out.println(productString + " is the best selling product");
+                    int count = rs.getInt("count");
+
+                    productSalesMap.put(product, count);
                 }
             });
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        Map.Entry<List<Product>, Integer> topProducts = StoreFilter
+                .getTopProducts(productSalesMap);
+
+        Printer.printTopProducts(topProducts.getKey(), topProducts.getValue());
     }
 
     private static void createTable(String createQuery) throws SQLException {
@@ -267,14 +276,5 @@ public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
 
         insertStatement.executeUpdate();
         insertStatement.close();
-    }
-
-    @Override
-    public void commit() {
-        try {
-            connection.commit();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 }

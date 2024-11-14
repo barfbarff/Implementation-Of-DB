@@ -7,14 +7,13 @@ import shop.Customer;
 import shop.Order;
 import shop.Product;
 import shop.utils.Printer;
-import shop.utils.StringGenerator;
+import shop.utils.StoreFilter;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-// TODO: Task 2.2 c)
 public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
     RecordManager recordManager;
 
@@ -43,6 +42,12 @@ public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
         }
 
         customerMap.put(customer.getCustomerId(), customer);
+
+        try {
+            recordManager.commit();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -77,7 +82,7 @@ public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
         }
 
         for (Customer customer : customerMap.values()) {
-            Printer.print(0, customer);
+            Printer.printCustomer(0, customer);
         }
     }
 
@@ -102,24 +107,9 @@ public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
             }
         }
 
-        Optional<Map.Entry<Product, Integer>> topProductEntry = productSalesMap
-                .entrySet()
-                .stream()
-                .max(Map.Entry.comparingByValue());
+        Map.Entry<List<Product>, Integer> topProducts = StoreFilter
+                .getTopProducts(productSalesMap);
 
-        topProductEntry.ifPresent(entry -> {
-            String productStr =
-                    StringGenerator.genString(0, entry.getKey());
-            System.out.println(productStr + " is the best selling product");
-        });
-    }
-
-    @Override
-    public void commit() {
-        try {
-            recordManager.commit();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Printer.printTopProducts(topProducts.getKey(), topProducts.getValue());
     }
 }
