@@ -10,6 +10,11 @@ import java.util.List;
 public class StorePerformanceTest {
     private static final String template = "Time Elapsed Of %s: %ss";
 
+    /**
+     * PERFORMANCE MEASUREMENT
+     * ASUS TUF FX504 [KVStore: 116.824s, H2Store: 3.753s]
+     * Macbook Pro M2 [KVStore: ..., H2Store ...]
+     */
     public static void main(String[] args) {
         int customerSize = 10000;
         int maxOrderSize = 10;
