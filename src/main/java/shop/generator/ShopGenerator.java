@@ -3,29 +3,33 @@ package shop.generator;
 import shop.Customer;
 import shop.Order;
 import shop.Product;
-import shop.utils.RandomIdGenerator;
+import shop.utils.RandomGenerator;
+import shop.utils.RandomIntGenerator;
+import shop.utils.RandomStrGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-// TODO: Task 2.2 a)
 public class ShopGenerator {
+
     private final static Random random = new Random();
-    private final static RandomIdGenerator productIdGenerator =
-            new RandomIdGenerator();
-    private final static RandomIdGenerator orderIdGenerator =
-            new RandomIdGenerator();
-    private final static RandomIdGenerator customerIdGenerator =
-            new RandomIdGenerator();
+    private final static RandomGenerator<Integer> productIdGenerator =
+            new RandomIntGenerator();
+    private final static RandomGenerator<Integer> orderIdGenerator =
+            new RandomIntGenerator();
+    private final static RandomGenerator<Integer> customerIdGenerator =
+            new RandomIntGenerator();
+    private final static RandomGenerator<String> randomStrGenerator =
+            new RandomStrGenerator();
 
     public static List<Product> generateProducts(int numProducts) {
         List<Product> productList = new ArrayList<>();
 
         for (int i = 0; i < numProducts; i++) {
             int randomId = productIdGenerator.generate();
-            String randomName = generateRandomString(10);
+            String randomName = randomStrGenerator.generate();
             productList.add(new Product(randomId, randomName));
         }
 
@@ -42,7 +46,7 @@ public class ShopGenerator {
 
         for (int i = 0; i < numOrders; i++) {
             int randomId = orderIdGenerator.generate();
-            String randomAddress = generateRandomString(10);
+            String randomAddress = randomStrGenerator.generate();
 
             List<Product> randomProducts = new ArrayList<>();
 
@@ -65,8 +69,8 @@ public class ShopGenerator {
         List<Order> orderList = generateOrders(products, randNumOrders);
 
         int randomId = customerIdGenerator.generate();
-        String randomName = generateRandomString(10);
-        String randomAddress = generateRandomString(10);
+        String randomName = randomStrGenerator.generate();
+        String randomAddress = randomStrGenerator.generate();
 
         Customer customer = new Customer(randomId, randomName, randomAddress);
         for (Order order : orderList) {
@@ -74,15 +78,5 @@ public class ShopGenerator {
         }
 
         return customer;
-    }
-
-    private static String generateRandomString(int length) {
-        String CHARACTERS = "abcdefghijklmnopqrstuvwxyz";
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            int randomCharIndex = random.nextInt(CHARACTERS.length());
-            stringBuilder.append(CHARACTERS.charAt(randomCharIndex));
-        }
-        return stringBuilder.toString();
     }
 }
