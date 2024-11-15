@@ -12,8 +12,8 @@ public class StorePerformanceTest {
 
     /**
      * PERFORMANCE MEASUREMENT
-     * ASUS TUF FX504 [KVStore: 84.394, H2Store: 2.229s]
-     * Macbook Pro M2 [KVStore: ..., H2Store ...]
+     * ASUS TUF FX504 [KVStore: 84.394s, H2Store: 2.229s]
+     * Macbook Pro M2 [KVStore: 13.017s, H2Store 1.497s]
      */
     public static void main(String[] args) {
         int customerSize = 10000;
