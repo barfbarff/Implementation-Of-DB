@@ -14,6 +14,7 @@ public class StorePerformanceTest {
      * PERFORMANCE MEASUREMENT
      * ASUS TUF FX504 [KVStore: 84.394s, H2Store: 2.229s]
      * Macbook Pro M2 [KVStore: 13.017s, H2Store 1.497s]
+     * Lenovo ThinkPad X1 Carbon [KVStore: 132.691s, H2Store: 7.11s]
      */
     public static void main(String[] args) {
         int customerSize = 10000;
