@@ -13,6 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * In order to test H2StoreImpl, please refer to the file H2Store located in
+ * the folder ./src/main/java/shop/example
+ */
 public class H2StoreImpl implements CustomerStore, CustomerStoreQuery {
 
     private static final String DB_DRIVER = "org.h2.Driver";

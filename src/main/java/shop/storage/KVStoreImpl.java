@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * In order to test KVStoreImpl, please refer to the file KVStore located in
+ * the folder ./src/main/java/shop/example
+ */
 public class KVStoreImpl implements CustomerStore, CustomerStoreQuery {
     RecordManager recordManager;
 
