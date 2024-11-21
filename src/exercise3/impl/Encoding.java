@@ -45,7 +45,7 @@ public class Encoding {
                 if (number < 128) {
                     break;
                 }
-                number = number / 128;
+                number /= 128;
             }
             bytes.set(bytes.size() - 1, (byte) (bytes.getLast() + 128));
             byteStream.addAll(bytes);
@@ -64,14 +64,16 @@ public class Encoding {
      */
     public static int[] decodeVB(byte[] vbs) {
         List<Integer> numbers = new ArrayList<>();
-        int n = 0;
+        int currentNumber = 0;
 
-        for (int i = 1; i < vbs.length; i++ ) {
-            if ((vbs[i] & 128) == 0) {
-                n = 128 * n + vbs[i];
+        for (byte currentByte : vbs) {
+            int unsignedByte = currentByte & 0xFF;
+            if ((unsignedByte & 128) == 0) {
+                currentNumber = 128 * currentNumber + unsignedByte;
             } else {
-                n = 128 *n + (vbs[i] - 128);
-                numbers.add(n);
+                currentNumber = 128 * currentNumber + (unsignedByte - 128);
+                numbers.add(currentNumber);
+                currentNumber = 0;
             }
         }
 
@@ -87,13 +89,42 @@ public class Encoding {
     public static void main(String[] args) {
         int[] seq = {1, 7, 56, 134, 256, 268, 384, 472, 512, 648};
 
+
+        System.out.println("~~~~~ Differential Encoding ~~~~~");
         int[] diffEncoded = encodeDiff(seq);
-        System.out.println("Size of Differential Encoding: " + diffEncoded.length * Integer.BYTES + " bytes");
+        System.out.println("Size of Differential Encoding: "
+                + diffEncoded.length * Integer.BYTES + " bytes"
+        );
 
+        System.out.println("~~~~~ Differential Decoding ~~~~~");
+        int[] diffDecoded = decodeDiff(diffEncoded);
+        printIntArray(diffDecoded);
+
+        System.out.println("~~~~~ Variable Byte Encoding ~~~~~");
         byte[] vbEncoded = encodeVB(seq);
-        System.out.println("Size of VB Compression: " + vbEncoded.length + " bytes");
+        System.out.println("Size of VB Compression: "
+                + vbEncoded.length + " bytes"
+        );
 
+        System.out.println("~~~~~ Variable Byte Decoding ~~~~~");
+        int[] vbDecoded = decodeVB(vbEncoded);
+        printIntArray(vbDecoded);
+
+        System.out.println("~~~~~ Differential Encoding and Variable Byte Encoding ~~~~~");
         byte[] vbDiffEncoded = encodeVB(diffEncoded);
-        System.out.print("Size of Differential Encoding and subsequence VB compression: " + vbDiffEncoded.length + " bytes");
+        System.out.println("Size of Differential Encoding and subsequence VB compression: "
+                + vbDiffEncoded.length + " bytes");
+    }
+
+    private static void printIntArray(int[] numbers) {
+        System.out.print("[");
+        for (int i = 0; i < numbers.length; i++) {
+            if (i != (numbers.length - 1)) {
+                System.out.print(numbers[i] + ", ");
+            } else {
+                System.out.print(numbers[i]);
+            }
+        }
+        System.out.println("]");
     }
 }
