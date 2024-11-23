@@ -118,8 +118,21 @@ public class PaxPage<T> implements Page<T> {
      */
     @Override
     public short store(T element) {
-        // TODO
-        return 0;
+        short id = nextFreeId();
+
+        for (int i = 0; i <columnSizes.length; i++) {
+            int offset = minipageOffsets[i] + id * columnSizes[i];
+            try {
+                converter.writeColumn(data.dataOutputStream(offset, offset + columnSizes[i]), element, i);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        slotMask[id] = true;
+        sizeRemaining -= getRecordSize();
+
+        return id;
     }
 
     /**
@@ -127,7 +140,10 @@ public class PaxPage<T> implements Page<T> {
      */
     @Override
     public void delete(short id) {
-        // TODO
+        if (slotMask[id]) {
+            sizeRemaining += getRecordSize();
+            slotMask[id] = false;
+        }
     }
 
     /**
@@ -135,8 +151,19 @@ public class PaxPage<T> implements Page<T> {
      */
     @Override
     public T get(short id) {
-        // TODO
-        return null;
+        if (!slotMask[id]) return null;
+
+        T result = null;
+        for (int i = 0; i < columnSizes.length; i++) {
+            int offset = minipageOffsets[i] + id * columnSizes[i];
+            try {
+                result = converter.readColumn(data.dataInputStream(offset, offset + columnSizes[i]), result, i);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return result;
     }
 
     /**

@@ -19,9 +19,9 @@ public class PaxMain {
         NSMPage<IntRecord> nsmPage = new NSMPage<>(65, new IntRecordConverter());
         PaxPage<IntRecord> paxPage = new PaxPage<>(65, new IntRecordConverter(), new int[]{4, 4, 4});
 
-        testPage(nsmPage);
+//        testPage(nsmPage);
         // TODO:
-        // testPage(paxPage)
+         testPage(paxPage);
     }
 
     static class IntRecord {
