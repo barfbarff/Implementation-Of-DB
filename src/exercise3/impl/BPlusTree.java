@@ -50,8 +50,17 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
 
         @Override
         Node split() {
-            // TODO: Impl.
-            return null;
+            IndexNode siblingNode = new IndexNode();
+
+            int medianKey = keys.size() / 2;
+
+            siblingNode.keys.addAll(keys.subList(medianKey + 1, keys.size()));
+            siblingNode.children.addAll(children.subList(medianKey + 1, children.size()));
+
+            keys.subList(medianKey, keys.size()).clear();
+            children.subList(medianKey + 1, children.size()).clear();
+
+            return siblingNode;
         }
     }
 
@@ -61,8 +70,17 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
 
         @Override
         Node split() {
-            // TODO: Impl.
-            return null;
+            LeafNode siblingNode = new LeafNode();
+
+            int medianKey = records.size() / 2;
+
+            siblingNode.records.addAll(records.subList(medianKey, records.size()));
+            records.subList(medianKey, records.size()).clear();
+
+            siblingNode.next = this.next;
+            this.next =siblingNode;
+
+            return siblingNode;
         }
 
         @Override
@@ -74,22 +92,152 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
     private Node root;
 
     public BPlusTree() {
-        // TODO: Impl.
+        this.root = new LeafNode();
     }
 
+    @SuppressWarnings("unchecked")
     public V insert(K key, V value) {
-        // TODO: Impl.
-        return null;
+        if (root.isLeaf() && ((LeafNode) root).records.size() == ENTRY_COUNT) {
+            splitRoot();
+        } else if (!root.isLeaf() && ((IndexNode) root).keys.size() == ENTRY_COUNT) {
+            splitRoot();
+        }
+
+        return insert(null, root, key, value);
     }
 
+    @SuppressWarnings("unchecked")
+    private V insert(IndexNode parentIndexNode, Node node, K key, V value) {
+        if (node.isLeaf()) {
+            LeafNode leafNode = (LeafNode) node;
+            for (Record record : leafNode.records) {
+                if (record.key.equals(key)) {
+                    V oldValue = record.value;
+                    record.value = value;
+                    return oldValue;
+                }
+            }
+
+            Record newRecord = new Record(key);
+            newRecord.setValue(value);
+            leafNode.records.add(newRecord);
+            leafNode.records.sort(Comparator.naturalOrder());
+
+            return null;
+        } else {
+            IndexNode indexNode = (IndexNode) node;
+
+            for (int i = 0; i < indexNode.children.size(); i++) {
+                Node childNode = indexNode.children.get(i);
+                if (childNode.isLeaf() && ((LeafNode) childNode).records.size() == ENTRY_COUNT) {
+                    splitChild(indexNode, i);
+                } else if (!childNode.isLeaf() && ((IndexNode) childNode).keys.size() == ENTRY_COUNT) {
+                    splitChild(indexNode, i);
+                }
+            }
+
+            int i = 0;
+            while (i < indexNode.keys.size() && key.compareTo(indexNode.keys.get(i)) > 0) {
+                i++;
+            }
+            return insert(indexNode, indexNode.children.get(i), key, value);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     public V pointQuery(K key) {
-        // TODO: Impl.
-        return null;
+        Node currentNode = root;
+
+        while (!currentNode.isLeaf()) {
+            IndexNode indexNode = (IndexNode) currentNode;
+
+            int i = 0;
+            while (i < indexNode.keys.size() && key.compareTo(indexNode.keys.get(i)) > 0) {
+                i++;
+            }
+            currentNode = indexNode.children.get(i);
+        }
+
+        LeafNode leaf = (LeafNode) currentNode;
+        for (Record record : leaf.records) {
+            if (record.key.equals(key)) {
+                return record.value;
+            }
+        }
+
+        return null; // Key not found
     }
 
+    @SuppressWarnings("unchecked")
     public List<? extends Map.Entry<K, V>> rangeQuery(K minKey, K maxKey) {
-        // TODO: Impl.
-        return List.of();
+        List<Map.Entry<K,V>> result = new ArrayList<>();
+        Node currentNode = root;
+
+        while (!currentNode.isLeaf()) {
+            IndexNode indexNode = (IndexNode) currentNode;
+
+            int i = 0;
+            while (i < indexNode.keys.size() && minKey.compareTo(indexNode.keys.get(i)) > 0) {
+                i++;
+            }
+            currentNode = indexNode.children.get(i);
+        }
+
+        LeafNode leafNode = (LeafNode) currentNode;
+        while (leafNode != null) {
+            for (Record record : leafNode.records) {
+                if (record.key.compareTo(minKey) >= 0 && record.key.compareTo(maxKey) <= 0) {
+                    result.add(new AbstractMap.SimpleImmutableEntry<>(record.key, record.value));
+                }
+            }
+
+            // Stop traversing if the last key in this LeafNode exceeds maxKey
+            if (leafNode.records.getLast().key.compareTo(maxKey) > 0) {
+                break;
+            }
+
+            // Move to the next LeafNode
+            leafNode = leafNode.next;
+        }
+
+        return List.copyOf(result);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void splitRoot() {
+        if (root.isLeaf()) {
+            LeafNode siblingNode = (LeafNode) root.split();
+            
+            IndexNode newRoot = new IndexNode();
+            newRoot.keys.add(siblingNode.records.getFirst().key);
+            newRoot.children.add(root);
+            newRoot.children.add(siblingNode);
+
+            root = newRoot;
+        } else {
+            IndexNode siblingNode = (IndexNode) root.split();
+
+            IndexNode newRoot = new IndexNode();
+            newRoot.keys.add(siblingNode.keys.getFirst());
+
+            newRoot.children.add(root);
+            newRoot.children.add(siblingNode);
+
+            root = newRoot;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void splitChild(IndexNode parentNode, int childNodeIndex) {
+        Node childNode = parentNode.children.get(childNodeIndex);
+        Node siblingNode = childNode.split();
+        K promotedKey = siblingNode.isLeaf()
+                ? ((LeafNode) siblingNode).records.getFirst().key
+                : ((IndexNode) siblingNode).keys.getFirst();
+
+        parentNode.keys.add(promotedKey);
+        parentNode.keys.sort(Comparator.naturalOrder());
+        parentNode.children.add(childNodeIndex + 1, siblingNode);
     }
 
     public static void main(String[] args) {
