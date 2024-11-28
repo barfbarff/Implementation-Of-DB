@@ -120,7 +120,7 @@ public class PaxPage<T> implements Page<T> {
     public short store(T element) {
         short id = nextFreeId();
 
-        for (int i = 0; i <columnSizes.length; i++) {
+        for (int i = 0; i < columnSizes.length; i++) {
             int offset = minipageOffsets[i] + id * columnSizes[i];
             try {
                 converter.writeColumn(data.dataOutputStream(offset, offset + columnSizes[i]), element, i);
@@ -151,7 +151,9 @@ public class PaxPage<T> implements Page<T> {
      */
     @Override
     public T get(short id) {
-        if (!slotMask[id]) return null;
+        if (!slotMask[id]) {
+            return null;
+        }
 
         T result = null;
         for (int i = 0; i < columnSizes.length; i++) {
