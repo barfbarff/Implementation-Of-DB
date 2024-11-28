@@ -103,11 +103,11 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
             splitRoot();
         }
 
-        return insert(null, root, key, value);
+        return insert(root, key, value);
     }
 
     @SuppressWarnings("unchecked")
-    private V insert(IndexNode parentIndexNode, Node node, K key, V value) {
+    private V insert(Node node, K key, V value) {
         if (node.isLeaf()) {
             LeafNode leafNode = (LeafNode) node;
             for (Record record : leafNode.records) {
@@ -135,12 +135,11 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
                     splitChild(indexNode, i);
                 }
             }
-
             int i = 0;
-            while (i < indexNode.keys.size() && key.compareTo(indexNode.keys.get(i)) > 0) {
+            while (i < indexNode.keys.size() && key.compareTo(indexNode.keys.get(i)) >= 0) {
                 i++;
             }
-            return insert(indexNode, indexNode.children.get(i), key, value);
+            return insert(indexNode.children.get(i), key, value);
         }
     }
 
@@ -152,7 +151,7 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
             IndexNode indexNode = (IndexNode) currentNode;
 
             int i = 0;
-            while (i < indexNode.keys.size() && key.compareTo(indexNode.keys.get(i)) > 0) {
+            while (i < indexNode.keys.size() && key.compareTo(indexNode.keys.get(i)) >= 0) {
                 i++;
             }
             currentNode = indexNode.children.get(i);
@@ -165,7 +164,7 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
             }
         }
 
-        return null; // Key not found
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -177,7 +176,7 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
             IndexNode indexNode = (IndexNode) currentNode;
 
             int i = 0;
-            while (i < indexNode.keys.size() && minKey.compareTo(indexNode.keys.get(i)) > 0) {
+            while (i < indexNode.keys.size() && minKey.compareTo(indexNode.keys.get(i)) >= 0) {
                 i++;
             }
             currentNode = indexNode.children.get(i);
@@ -191,12 +190,10 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
                 }
             }
 
-            // Stop traversing if the last key in this LeafNode exceeds maxKey
             if (leafNode.records.getLast().key.compareTo(maxKey) > 0) {
                 break;
             }
 
-            // Move to the next LeafNode
             leafNode = leafNode.next;
         }
 
@@ -240,6 +237,39 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
         parentNode.children.add(childNodeIndex + 1, siblingNode);
     }
 
+    @SuppressWarnings("unchecked")
+    public Map<Integer, List<List<K>>> getLevelToKeysMap() {
+        Map<Integer, List<List<K>>> levelToKeysMap = new HashMap<>();
+        if (root == null) {
+            return levelToKeysMap;
+        }
+
+        Queue<Map.Entry<Node, Integer>> queue = new LinkedList<>();
+        queue.add(new AbstractMap.SimpleEntry<>(root, 0)); // Add root with level 0
+
+        while (!queue.isEmpty()) {
+            Map.Entry<Node, Integer> entry = queue.poll();
+            Node currentNode = entry.getKey();
+            int level = entry.getValue();
+
+            List<K> keys = currentNode.isLeaf()
+                    ? ((LeafNode) currentNode).records.stream().map(record -> record.key).toList()
+                    : ((IndexNode) currentNode).keys;
+
+            levelToKeysMap.putIfAbsent(level, new ArrayList<>());
+            levelToKeysMap.get(level).add(keys);
+
+            if (!currentNode.isLeaf()) {
+                IndexNode indexNode = (IndexNode) currentNode;
+                for (Node child : indexNode.children) {
+                    queue.add(new AbstractMap.SimpleEntry<>(child, level + 1));
+                }
+            }
+        }
+
+        return levelToKeysMap;
+    }
+
     public static void main(String[] args) {
         assert false;
         BPlusTree<Integer, String> tree = new BPlusTree<>();
@@ -256,5 +286,38 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
                 throw new RuntimeException("Range query failed at key " + i);
             }
         }
+
+        List<String> pointQueryResults = new ArrayList<>();
+
+        System.out.println("~~~~~ Keys at each level ~~~~~");
+        Map<Integer, List<List<Integer>>> levelToKeysMap = tree.getLevelToKeysMap();
+        levelToKeysMap.forEach((level, nodes) -> {
+            System.out.println("Level " + level + " -> " + nodes);
+        });
+
+        System.out.println("~~~~~ Original Tree ~~~~~");
+        System.out.println("Range query for keys from 0 to 10: " + tree.rangeQuery(0, 10));
+
+        for (int i = 0; i <= 10; i++) {
+            pointQueryResults.add(tree.pointQuery(i));
+        }
+        System.out.println("Point query for keys from 0 to 10:" + pointQueryResults);
+        pointQueryResults.clear();
+
+        List<String> previousValues = new ArrayList<>();
+
+        System.out.println("~~~~~ Updated tree ~~~~~");
+        for (int i = 0; i <= 10; i++) {
+            previousValues.add(tree.insert(i, "" + (100 + i)));
+        }
+
+        System.out.println("Previous values for keys from 0 to 10: " + previousValues);
+
+        System.out.println("Range query for keys from 0 to 10: " + tree.rangeQuery(0, 10));
+
+        for (int i = 0; i <= 10; i++) {
+            pointQueryResults.add(tree.pointQuery(i));
+        }
+        System.out.println("Point query for keys from 0 to 10:" + pointQueryResults);
     }
 }
