@@ -1,6 +1,8 @@
 package exercise3.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Encoding {
@@ -36,7 +38,7 @@ public class Encoding {
      * Compresses the passed values using Variable Byte Encoding.
      */
     public static byte[] encodeVB(int[] numbers) {
-        List<Byte> byteStream = new ArrayList<>();
+        List<Byte> byteStream = new LinkedList<>();
 
         for (int number : numbers) {
             List<Byte> bytes = new ArrayList<>();
@@ -89,7 +91,6 @@ public class Encoding {
     public static void main(String[] args) {
         int[] seq = {1, 7, 56, 134, 256, 268, 384, 472, 512, 648};
 
-
         System.out.println("~~~~~ Differential Encoding ~~~~~");
         int[] diffEncoded = encodeDiff(seq);
         System.out.println("Size of Differential Encoding: "
@@ -98,7 +99,7 @@ public class Encoding {
 
         System.out.println("~~~~~ Differential Decoding ~~~~~");
         int[] diffDecoded = decodeDiff(diffEncoded);
-        printIntArray(diffDecoded);
+        System.out.println(Arrays.toString(diffDecoded));
 
         System.out.println("~~~~~ Variable Byte Encoding ~~~~~");
         byte[] vbEncoded = encodeVB(seq);
@@ -108,23 +109,11 @@ public class Encoding {
 
         System.out.println("~~~~~ Variable Byte Decoding ~~~~~");
         int[] vbDecoded = decodeVB(vbEncoded);
-        printIntArray(vbDecoded);
+        System.out.println(Arrays.toString(vbDecoded));
 
         System.out.println("~~~~~ Differential Encoding and Variable Byte Encoding ~~~~~");
         byte[] vbDiffEncoded = encodeVB(diffEncoded);
-        System.out.println("Size of Differential Encoding and subsequence VB compression: "
+        System.out.println("Size of Differential Encoding and subsequent VB compression: "
                 + vbDiffEncoded.length + " bytes");
-    }
-
-    private static void printIntArray(int[] numbers) {
-        System.out.print("[");
-        for (int i = 0; i < numbers.length; i++) {
-            if (i != (numbers.length - 1)) {
-                System.out.print(numbers[i] + ", ");
-            } else {
-                System.out.print(numbers[i]);
-            }
-        }
-        System.out.println("]");
     }
 }
