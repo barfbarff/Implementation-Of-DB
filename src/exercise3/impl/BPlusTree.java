@@ -78,7 +78,7 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
             records.subList(medianKey, records.size()).clear();
 
             siblingNode.next = this.next;
-            this.next =siblingNode;
+            this.next = siblingNode;
 
             return siblingNode;
         }
@@ -89,58 +89,102 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
         }
     }
 
+    final class SplitResult {
+        K promotedKey;
+        Node newSibling;
+        V oldValue;
+
+        SplitResult(K promotedKey, Node newSibling, V oldValue) {
+            this.promotedKey = promotedKey;
+            this.newSibling = newSibling;
+            this.oldValue = oldValue;
+        }
+    }
+
     private Node root;
 
     public BPlusTree() {
         this.root = new LeafNode();
     }
 
-    @SuppressWarnings("unchecked")
     public V insert(K key, V value) {
-        if (root.isLeaf() && ((LeafNode) root).records.size() == ENTRY_COUNT) {
-            splitRoot();
-        } else if (!root.isLeaf() && ((IndexNode) root).keys.size() == ENTRY_COUNT) {
-            splitRoot();
+        SplitResult splitResult = insertRecursive(root, key, value);
+
+        if (splitResult != null && splitResult.promotedKey == null && splitResult.newSibling == null) {
+            return splitResult.oldValue;
         }
 
-        return insert(root, key, value);
+        if (splitResult != null) {
+            IndexNode newRoot = new IndexNode();
+            newRoot.keys.add(splitResult.promotedKey);
+            newRoot.children.add(root);
+            newRoot.children.add(splitResult.newSibling);
+            root = newRoot;
+        }
+
+        return splitResult != null ? splitResult.oldValue : null;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private SplitResult insertRecursive(Node node, K key, V value) {
+        return node.isLeaf()
+                ? insertIntoLeaf((LeafNode) node, key, value)
+                : insertIntoIndex((IndexNode) node, key, value);
     }
 
     @SuppressWarnings("unchecked")
-    private V insert(Node node, K key, V value) {
-        if (node.isLeaf()) {
-            LeafNode leafNode = (LeafNode) node;
-            for (Record record : leafNode.records) {
-                if (record.key.equals(key)) {
-                    V oldValue = record.value;
-                    record.value = value;
-                    return oldValue;
-                }
-            }
-
-            Record newRecord = new Record(key);
-            newRecord.setValue(value);
-            leafNode.records.add(newRecord);
-            leafNode.records.sort(Comparator.naturalOrder());
-
-            return null;
-        } else {
-            IndexNode indexNode = (IndexNode) node;
-
-            for (int i = 0; i < indexNode.children.size(); i++) {
-                Node childNode = indexNode.children.get(i);
-                if (childNode.isLeaf() && ((LeafNode) childNode).records.size() == ENTRY_COUNT) {
-                    splitChild(indexNode, i);
-                } else if (!childNode.isLeaf() && ((IndexNode) childNode).keys.size() == ENTRY_COUNT) {
-                    splitChild(indexNode, i);
-                }
-            }
-            int i = 0;
-            while (i < indexNode.keys.size() && key.compareTo(indexNode.keys.get(i)) >= 0) {
-                i++;
-            }
-            return insert(indexNode.children.get(i), key, value);
+    private SplitResult insertIntoLeaf(LeafNode leaf, K key, V value) {
+        int pos = 0;
+        while (pos < leaf.records.size() && key.compareTo(leaf.records.get(pos).key) > 0) {
+            pos++;
         }
+
+        if (pos < leaf.records.size() && key.equals(leaf.records.get(pos).key)) {
+            V oldValue = leaf.records.get(pos).value;
+            leaf.records.get(pos).value = value;
+            return new SplitResult(null, null, oldValue);
+        }
+
+        Record newRecord = new Record(key);
+        newRecord.setValue(value);
+        leaf.records.add(pos, newRecord);
+
+        if (leaf.records.size() > ENTRY_COUNT) {
+            LeafNode sibling = (LeafNode) leaf.split();
+            return new SplitResult(sibling.records.getFirst().key, sibling, null);
+        }
+
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private SplitResult insertIntoIndex(IndexNode indexNode, K key, V value) {
+        int pos = 0;
+        while (pos < indexNode.keys.size() && key.compareTo(indexNode.keys.get(pos)) >= 0) {
+            pos++;
+        }
+
+        SplitResult splitResult = insertRecursive(indexNode.children.get(pos), key, value);
+
+        if (splitResult == null) {
+            return null;
+        }
+
+        if (splitResult.oldValue != null) {
+            return splitResult;
+        }
+
+        indexNode.keys.add(pos, splitResult.promotedKey);
+        indexNode.children.add(pos + 1, splitResult.newSibling);
+
+        if (indexNode.keys.size() > ENTRY_COUNT) {
+            K promotedKey = indexNode.keys.get(indexNode.keys.size() / 2);
+            IndexNode sibling = (IndexNode) indexNode.split();
+            return new SplitResult(promotedKey, sibling, null);
+        }
+
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -201,43 +245,6 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
     }
 
     @SuppressWarnings("unchecked")
-    private void splitRoot() {
-        if (root.isLeaf()) {
-            LeafNode siblingNode = (LeafNode) root.split();
-            
-            IndexNode newRoot = new IndexNode();
-            newRoot.keys.add(siblingNode.records.getFirst().key);
-            newRoot.children.add(root);
-            newRoot.children.add(siblingNode);
-
-            root = newRoot;
-        } else {
-            IndexNode siblingNode = (IndexNode) root.split();
-
-            IndexNode newRoot = new IndexNode();
-            newRoot.keys.add(siblingNode.keys.getFirst());
-
-            newRoot.children.add(root);
-            newRoot.children.add(siblingNode);
-
-            root = newRoot;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void splitChild(IndexNode parentNode, int childNodeIndex) {
-        Node childNode = parentNode.children.get(childNodeIndex);
-        Node siblingNode = childNode.split();
-        K promotedKey = siblingNode.isLeaf()
-                ? ((LeafNode) siblingNode).records.getFirst().key
-                : ((IndexNode) siblingNode).keys.getFirst();
-
-        parentNode.keys.add(promotedKey);
-        parentNode.keys.sort(Comparator.naturalOrder());
-        parentNode.children.add(childNodeIndex + 1, siblingNode);
-    }
-
-    @SuppressWarnings("unchecked")
     public Map<Integer, List<List<K>>> getLevelToKeysMap() {
         Map<Integer, List<List<K>>> levelToKeysMap = new HashMap<>();
         if (root == null) {
@@ -245,7 +252,7 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
         }
 
         Queue<Map.Entry<Node, Integer>> queue = new LinkedList<>();
-        queue.add(new AbstractMap.SimpleEntry<>(root, 0)); // Add root with level 0
+        queue.add(new AbstractMap.SimpleEntry<>(root, 0));
 
         while (!queue.isEmpty()) {
             Map.Entry<Node, Integer> entry = queue.poll();
@@ -271,9 +278,9 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
     }
 
     public static void main(String[] args) {
-        assert false;
         BPlusTree<Integer, String> tree = new BPlusTree<>();
-        for (int i = 0; i < 100; i++) {
+
+        for (int i = 0; i < 99; i++) {
             tree.insert(i, "" + i);
 
             for (int j = 0; j <= i; j++) {
@@ -296,28 +303,28 @@ public class BPlusTree<K extends Comparable<? super K>, V> {
         });
 
         System.out.println("~~~~~ Original Tree ~~~~~");
-        System.out.println("Range query for keys from 0 to 10: " + tree.rangeQuery(0, 10));
+        System.out.println("Range query for keys from 0 to 30: " + tree.rangeQuery(0, 30));
 
-        for (int i = 0; i <= 10; i++) {
+        for (int i = 0; i <= 30; i++) {
             pointQueryResults.add(tree.pointQuery(i));
         }
-        System.out.println("Point query for keys from 0 to 10:" + pointQueryResults);
+        System.out.println("Point query for keys from 0 to 30: " + pointQueryResults);
         pointQueryResults.clear();
 
         List<String> previousValues = new ArrayList<>();
 
-        System.out.println("~~~~~ Updated tree ~~~~~");
+        System.out.println("~~~~~ Updated Tree: Insert new values for keys from 0 to 10 ~~~~~");
         for (int i = 0; i <= 10; i++) {
             previousValues.add(tree.insert(i, "" + (100 + i)));
         }
 
         System.out.println("Previous values for keys from 0 to 10: " + previousValues);
 
-        System.out.println("Range query for keys from 0 to 10: " + tree.rangeQuery(0, 10));
+        System.out.println("Range query for keys from 0 to 30: " + tree.rangeQuery(0, 30));
 
-        for (int i = 0; i <= 10; i++) {
+        for (int i = 0; i <= 30; i++) {
             pointQueryResults.add(tree.pointQuery(i));
         }
-        System.out.println("Point query for keys from 0 to 10:" + pointQueryResults);
+        System.out.println("Point query for keys from 0 to 30: " + pointQueryResults);
     }
 }
