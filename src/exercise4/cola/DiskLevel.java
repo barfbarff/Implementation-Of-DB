@@ -64,9 +64,28 @@ public class DiskLevel<K extends Comparable<K>, V> implements COLALevel<K, V> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public V search(K key) {
-        // TODO:
-        // Important: only load blocks for the actual lookup
+        int low = 0;
+        int high = numElems - 1;
+
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            int blockIndex = mid / elemsPerBlock;
+            int blockOffset = mid % elemsPerBlock;
+
+            COLABlock<K, V> block = (COLABlock<K, V>) container.get(offset + (long) blockIndex * BasicCOLA.DISK_BLOCK_SIZE);
+            Pair<K,V> midElement = block.get(blockOffset);
+
+            int keyComparison = midElement.getFirst().compareTo(key);
+            if (keyComparison < 0) {
+                low = mid + 1;
+            } else if (keyComparison > 0) {
+                high = mid - 1;
+            } else {
+                return midElement.getSecond();
+            }
+        }
 
         return null;
     }
