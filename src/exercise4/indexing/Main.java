@@ -2,6 +2,7 @@ package exercise4.indexing;
 
 import exercise4.indexing.primary.impl.PrimaryTreeIndex;
 import exercise4.indexing.secondary.impl.SecondaryTreeIndex;
+import exercise4.indexing.utils.ResultSet;
 import exercise4.indexing.utils.Row;
 import exercise4.indexing.utils.Schema;
 import exercise4.indexing.utils.Table;
@@ -33,7 +34,16 @@ public class Main {
         }
 
         System.out.println("SELECT * FROM Table " +
-                "WHERE (col0 < 100 AND col1 like 'A%') OR col0 BETWEEN 1000 AND 105;");
-        // TODO: impl. and run the query and print the output
+                "WHERE (col0 < 100 AND col1 like 'A%') OR col0 BETWEEN 1000 AND 1010;");
+
+
+        ResultSet firstCondition = table.rangeQueryAtColumn(0, 0L, 100L)
+                .intersect(table.rangeQueryAtColumn(1, "A", "B"));
+
+        ResultSet secondCondition = table.rangeQueryAtColumn(0, 1000L, 1011L);
+
+        ResultSet finalResultSet = firstCondition.union(secondCondition);
+
+        finalResultSet.stream().forEach(System.out::println);
     }
 }

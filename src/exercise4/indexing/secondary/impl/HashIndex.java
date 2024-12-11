@@ -4,34 +4,44 @@ package exercise4.indexing.secondary.impl;
 import exercise4.indexing.secondary.SecondaryIndex;
 
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * An implementation of a SecondaryIndex around a HashMap.
  */
 public class HashIndex implements SecondaryIndex {
-    // TODO: add field(s) as necessary
+    private final Map<Object, Set<Long>> index;
 
     public HashIndex() {
-        // TODO
-        throw new UnsupportedOperationException("Not supported yet.");
+        this.index = new HashMap<>();
     }
 
     @Override
     public void insert(Object value, Long tid) {
-        // TODO
-        throw new UnsupportedOperationException("Not supported yet.");
+        index.computeIfAbsent(value, k -> new HashSet<>()).add(tid);
     }
 
     @Override
     public List<Long> get(Object value) {
-        // TODO
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new ArrayList<>(index.getOrDefault(value, new HashSet<>()));
     }
 
     @Override
     public boolean remove(Long tid, Object value) {
-        // TODO: make sure to only delete the given row/tid
-        throw new UnsupportedOperationException("Not supported yet.");
+        Set<Long> tids = index.get(value);
+
+        if (tids != null && tids.remove(tid)) {
+            if (tids.isEmpty()) {
+                index.remove(value);
+            }
+            return true;
+        }
+
+        return false;
     }
 }
