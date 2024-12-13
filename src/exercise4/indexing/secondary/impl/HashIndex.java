@@ -5,6 +5,7 @@ import exercise4.indexing.secondary.SecondaryIndex;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +29,7 @@ public class HashIndex implements SecondaryIndex {
 
     @Override
     public List<Long> get(Object value) {
-        return new ArrayList<>(index.getOrDefault(value, new HashSet<>()));
+        return new ArrayList<>(index.getOrDefault(value, Collections.emptySet()));
     }
 
     @Override

@@ -105,7 +105,7 @@ public class Table {
         primaryIndex.scan().forEach(entry -> {
             Row row = entry.getValue();
             Object columnValue = row.getColumn(columnIndex);
-            if (columnComparator.compare(columnValue, from) >= 0 && columnComparator.compare(columnValue, to) <= 0) {
+            if (columnComparator.compare(columnValue, from) >= 0 && columnComparator.compare(columnValue, to) < 0) {
                 matchingTids.add(entry.getKey());
             }
         });

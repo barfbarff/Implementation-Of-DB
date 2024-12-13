@@ -3,7 +3,6 @@ package exercise4.cola;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import xxl.core.collections.containers.Container;
@@ -92,13 +91,9 @@ public class BasicCOLA<K extends Comparable<K>, V> {
                 block = new COLABlock<>(elementsPerBlock);
 
                 for (int i = 0; i < elementsPerBlock; i++) {
-                    try {
-                        K key = keyConverter.read(dataInput);
-                        V value = valueConverter.read(dataInput);
-                        block.set(i, new Pair<>(key, value));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    K key = keyConverter.read(dataInput);
+                    V value = valueConverter.read(dataInput);
+                    block.set(i, new Pair<>(key, value));
                 }
 
                 return block;

@@ -60,12 +60,19 @@ public class Main {
     }
 
     private static <K extends Comparable<K>,  V> void benchmarkSearchElement(BasicCOLA<K, V> cola, K key) {
-        System.out.println("Searching key: " + key + ", result: " + cola.searchElement(key));
+        long totalExecutionTime = 0;
 
-        long startTime = System.nanoTime();
-        cola.searchElement(key);
-        long endTime = System.nanoTime();
+        V result = null;
 
-        System.out.println("Time to search for the key " + key + ": " + ( endTime - startTime) + " ns");
+        for (int i = 0; i < 50; i++) {
+            long starTime = System.nanoTime();
+            result = cola.searchElement(key);
+            long endTime = System.nanoTime();
+            totalExecutionTime += (endTime - starTime);
+        }
+
+        System.out.println("Searching key: " + key + ", result: " + result);
+
+        System.out.println("Average time to search for the key " + key + ": " + (double) totalExecutionTime / 50 + " ns");
     }
 }
